@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="#1a1b26">
+    android:background="@color/tokyo_bg">
 
     <!-- Main Transparent View -->
     <View
@@ -18,7 +18,7 @@
         android:layout_width="2dp"
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
-        android:background="#414868" />
+        android:background="@color/tokyo_bg_light" />
 
     <!-- Horizontal Center Line -->
     <View
@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:layout_centerVertical="true"
-        android:background="#414868" />
+        android:background="@color/tokyo_bg_light" />
 
     <!-- Left Side Interceptable Area -->
     <com.tempestgf.steeringwheel.InterceptableFrameLayout
@@ -35,7 +35,7 @@
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@id/center_line_vertical"
-        android:background="#1e2030" />
+        android:background="@color/tokyo_bg" />
 
     <!-- Right Side Interceptable Area -->
     <com.tempestgf.steeringwheel.InterceptableFrameLayout
@@ -44,7 +44,7 @@
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@id/center_line_vertical"
-        android:background="#1e2030" />
+        android:background="@color/tokyo_bg" />
 
     <!-- Brake Indicator -->
     <View
@@ -54,7 +54,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/left_side"
         android:layout_alignEnd="@+id/center_line_vertical"
-        android:background="#f7768e"
+        android:background="@color/tokyo_red"
         android:visibility="gone" />
 
     <!-- Brake Top Indicator -->
@@ -65,7 +65,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/left_side"
         android:layout_alignEnd="@+id/center_line_vertical"
-        android:background="#ff9e64"
+        android:background="@color/tokyo_orange"
         android:visibility="gone" />
 
     <!-- Accelerator Indicator -->
@@ -76,7 +76,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/center_line_vertical"
         android:layout_alignEnd="@+id/right_side"
-        android:background="#7aa2f7"
+        android:background="@color/tokyo_primary"
         android:visibility="gone" />
 
     <!-- Accelerator Top Indicator -->
@@ -87,7 +87,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/center_line_vertical"
         android:layout_alignEnd="@+id/right_side"
-        android:background="#7dcfff"
+        android:background="@color/tokyo_cyan"
         android:visibility="gone" />
 
     <!-- Left Max Angle Indicator -->
@@ -96,7 +96,7 @@
         android:layout_width="20dp"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
-        android:background="#f7768e"
+        android:background="@color/tokyo_red"
         android:visibility="gone" />
 
     <!-- Right Max Angle Indicator -->
@@ -105,7 +105,7 @@
         android:layout_width="20dp"
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
-        android:background="#f7768e"
+        android:background="@color/tokyo_red"
         android:visibility="gone" />
 
     <!-- Full-Screen Buttons -->
@@ -117,10 +117,10 @@
         android:layout_alignParentTop="true"
         android:layout_alignEnd="@+id/center_line_vertical"
         android:layout_alignBottom="@+id/center_line_horizontal"
-        android:background="#3b4261"
+        android:background="@color/tokyo_gray"
         android:alpha="0.8"
         android:text="Left Top"
-        android:textColor="#c0caf5" />
+        android:textColor="@color/tokyo_fg" />
 
     <Button
         android:id="@+id/button_left_bottom"
@@ -130,10 +130,10 @@
         android:layout_alignParentBottom="true"
         android:layout_alignEnd="@+id/center_line_vertical"
         android:layout_alignTop="@+id/center_line_horizontal"
-        android:background="#3b4261"
+        android:background="@color/tokyo_gray"
         android:alpha="0.8"
         android:text="Left Bottom"
-        android:textColor="#c0caf5" />
+        android:textColor="@color/tokyo_fg" />
 
     <Button
         android:id="@+id/button_right_top"
@@ -143,10 +143,10 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/center_line_vertical"
         android:layout_alignBottom="@+id/center_line_horizontal"
-        android:background="#3b4261"
+        android:background="@color/tokyo_gray"
         android:alpha="0.8"
         android:text="Right Top"
-        android:textColor="#c0caf5" />
+        android:textColor="@color/tokyo_fg" />
 
     <Button
         android:id="@+id/button_right_bottom"
@@ -156,10 +156,10 @@
         android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/center_line_vertical"
         android:layout_alignTop="@+id/center_line_horizontal"
-        android:background="#3b4261"
+        android:background="@color/tokyo_gray"
         android:alpha="0.8"
         android:text="Right Bottom"
-        android:textColor="#c0caf5" />
+        android:textColor="@color/tokyo_fg" />
 
 
 </RelativeLayout>

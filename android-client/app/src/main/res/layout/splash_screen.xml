@@ -9,6 +9,9 @@
         android:id="@+id/splash_logo"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:src="@mipmap/minimal"
+        android:background="#1a1b26"
+        android:padding="16dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/app_logo"
         android:contentDescription="@string/app_name" />
 </RelativeLayout>

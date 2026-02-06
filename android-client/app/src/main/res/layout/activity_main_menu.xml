@@ -1,90 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="#1a1b26">
+    android:orientation="horizontal"
+    android:padding="24dp"
+    android:background="@color/tokyo_bg"
+    android:baselineAligned="false">
 
-    <!-- Logo de la Aplicación -->
-    <ImageView
-        android:id="@+id/app_logo"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="16dp"
-        android:src="@drawable/minimal" />
-
-    <!-- Texto de Bienvenida -->
-    <TextView
-        android:id="@+id/welcome_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Mobile Wheel"
-        android:textSize="20sp"
-        android:textColor="#c0caf5"
-        android:layout_below="@id/app_logo"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="sans-serif-black"/>
-
-    <!-- Botones Centrados Verticalmente -->
+    <!-- Left Side: Branding -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/welcome_text"
-        android:layout_centerHorizontal="true"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingEnd="24dp">
+
+        <ImageView
+            android:id="@+id/app_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/app_logo"
+            android:layout_marginBottom="16dp"
+            android:elevation="4dp"/>
+
+        <TextView
+            android:id="@+id/welcome_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mobile Wheel"
+            android:textSize="28sp"
+            android:textColor="@color/tokyo_fg"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/footer_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="© 2024 Tempestgf"
+            android:textColor="@color/tokyo_gray"
+            android:fontFamily="sans-serif"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Right Side: Buttons -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center">
 
         <Button
             android:id="@+id/button_start"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
             android:text="Start"
-            android:textColor="#ffffff"
+            android:textColor="@color/tokyo_bg"
             android:textAllCaps="false"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-black"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
             android:background="@drawable/tokyo_button"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp" 
+            android:stateListAnimator="@null"
+            android:elevation="0dp"/>
 
         <Button
             android:id="@+id/button_settings"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
             android:text="Settings"
-            android:textColor="#ffffff"
+            android:textColor="@color/tokyo_fg"
             android:textAllCaps="false"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-black"
-            android:background="@drawable/tokyo_button"
-            android:layout_marginBottom="12dp" />
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/tokyo_button_secondary"
+            android:layout_marginBottom="16dp" 
+            android:stateListAnimator="@null"
+            android:elevation="0dp"/>
 
         <Button
             android:id="@+id/button_about"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
             android:text="About"
-            android:textColor="#ffffff"
+            android:textColor="@color/tokyo_fg"
             android:textAllCaps="false"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-black"
-            android:background="@drawable/tokyo_button"
-            android:layout_marginBottom="12dp" />
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/tokyo_button_secondary"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"/>
     </LinearLayout>
-
-    <!-- Pie de página -->
-    <TextView
-        android:id="@+id/footer_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="© 2024 Tempestgf"
-        android:textColor="#565f89"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:fontFamily="sans-serif-black"
-        android:textSize="12sp" />
-</RelativeLayout>
+</LinearLayout>

@@ -3,8 +3,9 @@
     android:color="@color/ripple_color">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/tokyo_primary"/>
-            <corners android:radius="100dp"/> <!-- Fully rounded pill shape -->
+            <solid android:color="@color/tokyo_bg_light"/> <!-- Darker background -->
+            <stroke android:width="1dp" android:color="@color/tokyo_gray"/> <!-- Subtle stroke -->
+            <corners android:radius="100dp"/>
         </shape>
     </item>
 </ripple>

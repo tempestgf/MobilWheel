@@ -25,12 +25,18 @@ class ServerApp:
 
         # Cargar el ícono en formato .ico utilizando la ruta correcta
         icon_path = os.path.join(base_path, "minimal.ico")
-        self.root.iconbitmap(icon_path)  # Usar la ruta correcta para el ícono
+        try:
+            self.root.iconbitmap(icon_path)  # Usar la ruta correcta para el ícono
+        except Exception as e:
+            logging.warning(f"Could not load icon: {e}")
 
         # Cargar el tema Azure
         tcl_path = os.path.join(base_path, "azure.tcl")
-        self.root.tk.call("source", tcl_path)  # Asegúrate de que el archivo .tcl esté en el directorio del script
-        self.root.tk.call("set_theme", "dark")  # Usar el tema oscuro de Azure
+        try:
+            self.root.tk.call("source", tcl_path)  # Asegúrate de que el archivo .tcl esté en el directorio del script
+            self.root.tk.call("set_theme", "dark")  # Usar el tema oscuro de Azure
+        except Exception as e:
+            logging.warning(f"Could not load Azure theme: {e}")
 
         # Aplicar esquema de colores Tokyo Night para la ventana principal
         self.root.configure(bg="#1a1b26")  # Fondo de la ventana

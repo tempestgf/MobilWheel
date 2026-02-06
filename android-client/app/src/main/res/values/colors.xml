@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorPrimary">#7aa2f7</color>
+    <color name="colorPrimaryDark">#1a1b26</color>
+    <color name="colorAccent">#bb9af7</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    
+    <!-- Tokyo Night Palette -->
+    <color name="tokyo_bg">#1a1b26</color>
+    <color name="tokyo_bg_light">#24283b</color>
+    <color name="tokyo_fg">#c0caf5</color>
+    <color name="tokyo_primary">#7aa2f7</color>
+    <color name="tokyo_primary_dark">#3d59a1</color>
+    <color name="tokyo_secondary">#bb9af7</color>
+    <color name="tokyo_green">#9ece6a</color>
+    <color name="tokyo_orange">#ff9e64</color>
+    <color name="tokyo_red">#f7768e</color>
+    <color name="tokyo_cyan">#7dcfff</color>
+    <color name="tokyo_gray">#565f89</color>
+    <color name="ripple_color">#40ffffff</color>
 </resources>

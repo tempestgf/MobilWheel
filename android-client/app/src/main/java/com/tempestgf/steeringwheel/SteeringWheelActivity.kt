@@ -519,7 +519,13 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
                 closeConnection()
 
                 // Intentar conectar
-                socket = Socket(serverAddress, serverPort)
+                socket = Socket(serverAddress, serverPort).apply {
+                    tcpNoDelay = true  // Disable Nagle's algorithm for low latency
+                    keepAlive = true   // Keep connection alive
+                    soTimeout = 5000   // 5 second socket timeout
+                    sendBufferSize = 65536  // Increase send buffer
+                    receiveBufferSize = 65536  // Increase receive buffer
+                }
                 outputStream = DataOutputStream(socket?.getOutputStream())
                 Log.d("MainActivity", "Connection established to $serverAddress:$serverPort via USB Tethering")
 
@@ -542,13 +548,18 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
 
     private fun closeConnection() {
         try {
-            socket?.shutdownOutput()  // Señalar que no se enviarán más datos
-            outputStream?.close()      // Cerrar el flujo de salida
-            socket?.close()            // Cerrar el socket
+            outputStream?.flush()      // Flush remaining data
+            socket?.shutdownOutput()   // Signal no more data will be sent
+            outputStream?.close()       // Close the output stream
+            socket?.shutdownInput()     // Signal no more data will be received
+            socket?.close()             // Close the socket
             Log.d("MainActivity", "Connection closed")
         } catch (e: IOException) {
             e.printStackTrace()
             Log.e("MainActivity", "Failed to close connection", e)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("MainActivity", "Unexpected error closing connection", e)
         } finally {
             socket = null
             outputStream = null

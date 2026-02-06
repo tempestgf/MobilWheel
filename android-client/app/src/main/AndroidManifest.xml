@@ -14,17 +14,17 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/minimal"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/minimal"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:screenOrientation="landscape"
         tools:ignore="DiscouragedApi">
 
-        <!-- SplashActivity como LAUNCHER -->
+        <!-- MainActivity como LAUNCHER -->
         <activity
-            android:name="com.tempestgf.steeringwheel.SplashActivity"
+            android:name="com.tempestgf.steeringwheel.MainActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -32,12 +32,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- MainActivity ya no es LAUNCHER -->
-        <activity
-            android:name="com.tempestgf.steeringwheel.MainActivity"
-            android:exported="true"
-            android:screenOrientation="landscape" />
 
         <!-- Otras actividades -->
         <activity android:name="com.tempestgf.steeringwheel.AboutActivity" android:screenOrientation="landscape" />
