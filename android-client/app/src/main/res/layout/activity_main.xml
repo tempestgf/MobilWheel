@@ -1,52 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="@color/tokyo_bg">
+    android:background="#FF000005">
 
-    <!-- Main Transparent View -->
+    <!-- ================================================== -->
+    <!--   CAPA FUNCIONAL  (IDs y lógica original intactos)  -->
+    <!-- ================================================== -->
+
     <View
         android:id="@+id/mainView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent" />
 
-    <!-- Vertical Center Line -->
+    <!-- Líneas de centro (reducidas a casi invisibles; la lógica las usa) -->
     <View
         android:id="@+id/center_line_vertical"
-        android:layout_width="2dp"
+        android:layout_width="1dp"
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
-        android:background="@color/tokyo_bg_light" />
+        android:background="#08565f89" />
 
-    <!-- Horizontal Center Line -->
     <View
         android:id="@+id/center_line_horizontal"
         android:layout_width="match_parent"
-        android:layout_height="2dp"
+        android:layout_height="1dp"
         android:layout_centerVertical="true"
-        android:background="@color/tokyo_bg_light" />
+        android:background="#08565f89" />
 
-    <!-- Left Side Interceptable Area -->
+    <!-- Zonas interceptables de toque (izquierda/derecha) -->
     <com.tempestgf.steeringwheel.InterceptableFrameLayout
         android:id="@+id/left_side"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@id/center_line_vertical"
-        android:background="@color/tokyo_bg" />
+        android:background="@android:color/transparent" />
 
-    <!-- Right Side Interceptable Area -->
     <com.tempestgf.steeringwheel.InterceptableFrameLayout
         android:id="@+id/right_side"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@id/center_line_vertical"
-        android:background="@color/tokyo_bg" />
+        android:background="@android:color/transparent" />
 
-    <!-- Brake Indicator -->
+    <!-- Indicadores de freno / aceleración (overlay de pantalla completa) -->
     <View
         android:id="@+id/brakeIndicator"
         android:layout_width="match_parent"
@@ -54,21 +56,9 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/left_side"
         android:layout_alignEnd="@+id/center_line_vertical"
-        android:background="@color/tokyo_red"
+        android:background="@drawable/brake_fill_gradient"
         android:visibility="gone" />
 
-    <!-- Brake Top Indicator -->
-    <View
-        android:id="@+id/brakeTopIndicator"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignStart="@+id/left_side"
-        android:layout_alignEnd="@+id/center_line_vertical"
-        android:background="@color/tokyo_orange"
-        android:visibility="gone" />
-
-    <!-- Accelerator Indicator -->
     <View
         android:id="@+id/accelerateIndicator"
         android:layout_width="match_parent"
@@ -76,90 +66,477 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/center_line_vertical"
         android:layout_alignEnd="@+id/right_side"
-        android:background="@color/tokyo_primary"
+        android:background="@drawable/gas_fill_gradient"
         android:visibility="gone" />
 
-    <!-- Accelerator Top Indicator -->
+    <!-- Tiras indicadoras de 100% (rojo / verde) -->
+    <View
+        android:id="@+id/brakeTopIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="26dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_alignStart="@+id/left_side"
+        android:layout_alignEnd="@+id/center_line_vertical"
+        android:background="@color/tokyo_red"
+        android:visibility="gone" />
+
     <View
         android:id="@+id/accelerateTopIndicator"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="6dp"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="26dp"
+        android:layout_marginHorizontal="12dp"
         android:layout_alignStart="@+id/center_line_vertical"
         android:layout_alignEnd="@+id/right_side"
-        android:background="@color/tokyo_cyan"
+        android:background="@color/tokyo_green"
         android:visibility="gone" />
 
-    <!-- Left Max Angle Indicator -->
+    <!-- Indicadores de ángulo máximo -->
     <View
         android:id="@+id/left_max_angle_indicator"
-        android:layout_width="20dp"
+        android:layout_width="4dp"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
         android:background="@color/tokyo_red"
         android:visibility="gone" />
 
-    <!-- Right Max Angle Indicator -->
     <View
         android:id="@+id/right_max_angle_indicator"
-        android:layout_width="20dp"
+        android:layout_width="4dp"
         android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:background="@color/tokyo_red"
         android:visibility="gone" />
 
-    <!-- Full-Screen Buttons -->
-    <Button
-        android:id="@+id/button_left_top"
+    <!-- ============================================================ -->
+    <!--   BOTONES DE ACCIÓN  (izquierda / derecha, estilo HUD)       -->
+    <!-- ============================================================ -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignEnd="@+id/center_line_vertical"
-        android:layout_alignBottom="@+id/center_line_horizontal"
-        android:background="@color/tokyo_gray"
-        android:alpha="0.8"
-        android:text="Left Top"
-        android:textColor="@color/tokyo_fg" />
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+        android:layout_marginTop="52dp"
+        android:layout_marginBottom="28dp"
+        android:elevation="4dp">
 
-    <Button
-        android:id="@+id/button_left_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignEnd="@+id/center_line_vertical"
-        android:layout_alignTop="@+id/center_line_horizontal"
-        android:background="@color/tokyo_gray"
-        android:alpha="0.8"
-        android:text="Left Bottom"
-        android:textColor="@color/tokyo_fg" />
+        <!-- Columna izquierda: L1 + L2 (mitad completa de pantalla) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="8dp">
 
-    <Button
-        android:id="@+id/button_right_top"
+            <Button
+                android:id="@+id/button_left_top"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/hud_button_background"
+                android:text="L1 / D"
+                android:textColor="@color/tokyo_fg"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:alpha="0.65" />
+
+            <Button
+                android:id="@+id/button_left_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/hud_button_background"
+                android:text="L2 / E"
+                android:textColor="@color/tokyo_fg"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:alpha="0.65" />
+        </LinearLayout>
+
+        <!-- Columna derecha: R1 + R2 (mitad completa de pantalla) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/button_right_top"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/hud_button_background"
+                android:text="R1 / F"
+                android:textColor="@color/tokyo_fg"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:alpha="0.65" />
+
+            <Button
+                android:id="@+id/button_right_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/hud_button_background"
+                android:text="R2 / G"
+                android:textColor="@color/tokyo_fg"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:alpha="0.65" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ============================================================ -->
+    <!--   CAPA VISUAL HUD  (elevation alta, no intercepta toques)    -->
+    <!-- ============================================================ -->
+
+    <!-- Resplandor ambiental naranja en el centro -->
+    <View
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/cockpit_glow"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="5dp" />
+
+    <!-- Arco RPM exterior (decorativo) -->
+    <View
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/cockpit_arc_outer"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="5dp" />
+
+    <!-- Arco RPM interior (decorativo) -->
+    <View
+        android:layout_width="178dp"
+        android:layout_height="178dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/cockpit_arc_inner"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="5dp" />
+
+    <!-- Línea de horizonte artificial -->
+    <View
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="1dp"
+        android:layout_centerVertical="true"
+        android:background="@drawable/horizon_gradient"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="6dp" />
+
+    <!-- Bloque central: marcha + dots de RPM -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="7dp">
+
+        <!-- Indicador GEAR (etiqueta + número grande) -->
+        <LinearLayout
+            android:id="@+id/gearContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:clickable="false"
+            android:focusable="false">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GEAR"
+                android:textColor="@color/tokyo_orange"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.3"
+                android:fontFamily="monospace" />
+
+            <TextView
+                android:id="@+id/gearIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N"
+                android:textColor="@color/tokyo_fg"
+                android:textSize="88sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:lineSpacingMultiplier="0.85"
+                android:includeFontPadding="false" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Velocidad (derecha del centro) -->
+    <LinearLayout
+        android:id="@+id/speedContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/center_line_vertical"
-        android:layout_alignBottom="@+id/center_line_horizontal"
-        android:background="@color/tokyo_gray"
-        android:alpha="0.8"
-        android:text="Right Top"
-        android:textColor="@color/tokyo_fg" />
+        android:layout_marginEnd="52dp"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="6dp">
 
-    <Button
-        android:id="@+id/button_right_bottom"
+        <TextView
+            android:id="@+id/speedValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="@color/tokyo_fg"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KM/H"
+            android:textColor="#55FFFFFF"
+            android:textSize="9sp"
+            android:letterSpacing="0.1"
+            android:fontFamily="monospace"
+            android:gravity="end" />
+    </LinearLayout>
+
+    <!-- Barras FFB (izquierda del centro) -->
+    <LinearLayout
+        android:id="@+id/ffbContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="52dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="6dp">
+
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#FFff9e64" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#FFff9e64" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#FFff9e64" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#FFff9e64" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#FFff9e64" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#22FFFFFF" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:layout_marginBottom="4dp" android:background="#22FFFFFF" />
+        <View android:layout_width="28dp" android:layout_height="5dp"
+            android:background="#22FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FFB"
+            android:textColor="#44FFFFFF"
+            android:textSize="8sp"
+            android:letterSpacing="0.15"
+            android:fontFamily="monospace"
+            android:layout_marginTop="6dp" />
+    </LinearLayout>
+
+    <!-- ============================================================ -->
+    <!--   BARRA INFERIOR: VISUALIZADOR DE PEDALES                    -->
+    <!-- ============================================================ -->
+    <!--   ETIQUETAS PERMANENTES DE PEDALES (siempre visibles)       -->
+    <!-- ============================================================ -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentEnd="true"
+        android:layout_height="26dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignStart="@+id/center_line_vertical"
-        android:layout_alignTop="@+id/center_line_horizontal"
-        android:background="@color/tokyo_gray"
-        android:alpha="0.8"
-        android:text="Right Bottom"
-        android:textColor="@color/tokyo_fg" />
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="9dp"
+        android:background="#CC000005">
 
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="BRAKE"
+            android:textColor="#CCf7768e"
+            android:textSize="9sp"
+            android:letterSpacing="0.15"
+            android:fontFamily="monospace" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#20FFFFFF" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="GAS"
+            android:textColor="#CC9ece6a"
+            android:textSize="9sp"
+            android:letterSpacing="0.15"
+            android:fontFamily="monospace" />
+    </LinearLayout>
+
+    <!-- ============================================================ -->
+    <!--   BARRA SUPERIOR: ESTADO DE CONEXIÓN                         -->
+    <!-- ============================================================ -->
+    <LinearLayout
+        android:id="@+id/topStatusBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="10dp"
+        android:background="#CC000005">
+
+        <!-- Punto indicador de estado -->
+        <View
+            android:id="@+id/connectionDot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/cockpit_dot_green" />
+
+        <!-- Etiqueta de estado de conexión -->
+        <TextView
+            android:id="@+id/connectionLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OFFLINE"
+            android:textColor="#FFFF6B6B"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:fontFamily="monospace"
+            android:layout_marginStart="7dp" />
+
+        <!-- Dirección IP -->
+        <TextView
+            android:id="@+id/ipAddressDisplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="192.168.1.42"
+            android:textColor="#44FFFFFF"
+            android:textSize="10sp"
+            android:fontFamily="monospace"
+            android:layout_marginStart="16dp" />
+
+        <!-- Indicador de RPM con dots -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginStart="16dp">
+
+            <!-- Texto RPM -->
+            <TextView
+                android:id="@+id/rpmIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 RPM"
+                android:textColor="#FFff9e64"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="2dp" />
+
+            <!-- Dots de RPM: 10 dots total (4 verde, 3 amarillo, 3 rojo) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <!-- Verde (1-4) -->
+                <View android:id="@+id/rpmDot1"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot2"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot3"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot4"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="4dp"/>
+
+                <!-- Amarillo (5-7) -->
+                <View android:id="@+id/rpmDot5"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot6"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot7"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="4dp"/>
+
+                <!-- Rojo (8-10) - ZONA DE CAMBIO -->
+                <View android:id="@+id/rpmDot8"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot9"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot10" android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Separador flexible -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Iconos de estado (texto monoespaciado estilo HUD) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WiFi"
+            android:textColor="#55FFFFFF"
+            android:textSize="9sp"
+            android:letterSpacing="0.05"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BAT"
+            android:textColor="#55FFFFFF"
+            android:textSize="9sp"
+            android:letterSpacing="0.05"
+            android:fontFamily="monospace"
+            android:layout_marginStart="14dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CFG"
+            android:textColor="#55FFFFFF"
+            android:textSize="9sp"
+            android:letterSpacing="0.05"
+            android:fontFamily="monospace"
+            android:layout_marginStart="14dp" />
+    </LinearLayout>
 
 </RelativeLayout>

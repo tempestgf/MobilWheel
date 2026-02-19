@@ -8,9 +8,16 @@ import platform
 import logging
 from collections import deque
 import threading
-import netifaces
 import signal
 import tkinter as tk
+
+# Import AC Telemetry
+try:
+    from ac_telemetry import ACTelemetryReader, ACPhysics
+    AC_TELEMETRY_AVAILABLE = True
+except ImportError:
+    AC_TELEMETRY_AVAILABLE = False
+    logging.warning("AC Telemetry module not available")
 
 # Configuración del registro
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -73,6 +80,8 @@ device_states = {}
 # Keep virtual devices alive across client reconnects
 KEEP_DEVICE_ON_DISCONNECT = True
 acquired_devices = set()
+
+AC_TELEMETRY_PORT = 9996   # Puerto UDP de telemetría de Assetto Corsa
 
 command_map = {
     'D': 'left_top',
@@ -263,6 +272,90 @@ def _set_axis_linux(device_id, axis_id, value):
     else:
         logging.error(f"Axis {axis_id} not mapped for Linux")
 
+def forward_ac_telemetry(client_conn, stop_event, send_lock):
+    """
+    Lee telemetría de Assetto Corsa mediante shared memory y la reenvía
+    al teléfono por la conexión TCP existente como 'T:velocidad:marcha:rpm\n'.
+    
+    Usa ACTelemetryReader (shared memory) en lugar de UDP para mayor confiabilidad.
+    Se reintenta automáticamente cada 3s si AC no está disponible.
+    """
+    if not AC_TELEMETRY_AVAILABLE:
+        logging.warning("AC Telemetry not available, skipping telemetry forwarding")
+        return
+    
+    SEND_INTERVAL = 1.0 / 10.0  # 10 Hz hacia el móvil (reducido para priorizar comandos del volante)
+    last_send = 0.0
+    
+    telemetry_reader = None
+    
+    while not stop_event.is_set():
+        try:
+            # Intentar conectar a AC si no está conectado
+            if telemetry_reader is None:
+                telemetry_reader = ACTelemetryReader()
+                if not telemetry_reader.connect():
+                    logging.debug("AC no disponible (menú/sin sesión) — reintentando en 3s")
+                    time.sleep(3)
+                    telemetry_reader = None
+                    continue
+                logging.info("Conectado a AC telemetry (shared memory)")
+            
+            # Leer datos de telemetría
+            data = telemetry_reader.read_physics()
+            
+            if data is None:
+                # Perdimos conexión con AC
+                logging.debug("Perdida conexión con AC, reconectando...")
+                telemetry_reader.disconnect()
+                telemetry_reader = None
+                time.sleep(3)
+                continue
+            
+            # Validar datos
+            if not (0.0 <= data.speed_kmh <= 500.0 and 0.0 <= data.rpms <= 20000.0):
+                continue
+            
+            # Throttle: enviar máximo a 10 Hz (priorizar comandos del volante)
+            now = time.time()
+            if now - last_send >= SEND_INTERVAL:
+                last_send = now
+                
+                # Formato: T:velocidad:marcha:rpm\n
+                # IMPORTANTE: Android espera formato original de AC (0=R, 1=N, 2=1ª...)
+                # pero data.gear ya está corregido (-1=R, 0=N, 1=1ª...)
+                # así que sumamos +1 para volver al formato original
+                speed = int(data.speed_kmh)
+                gear = data.gear + 1  # Volver al formato original: 0=R, 1=N, 2=1ª, 3=2ª...
+                rpm = int(data.rpms)
+                
+                msg = f"T:{speed}:{gear}:{rpm}\n"
+                
+                try:
+                    with send_lock:
+                        client_conn.sendall(msg.encode('utf-8'))
+                except OSError:
+                    # Cliente desconectado
+                    logging.info("Cliente desconectado, deteniendo telemetría")
+                    break
+            
+            # Pausa para no saturar la CPU ni la red (priorizar comandos del volante)
+            time.sleep(0.05)  # 20Hz polling rate, envío a 10Hz
+            
+        except Exception as e:
+            logging.error(f"Error en telemetría AC: {e}")
+            if telemetry_reader:
+                telemetry_reader.disconnect()
+                telemetry_reader = None
+            if not stop_event.is_set():
+                time.sleep(3)
+    
+    # Cleanup
+    if telemetry_reader:
+        telemetry_reader.disconnect()
+    logging.info("Telemetry forwarder stopped")
+
+
 def map_value(value, in_min, in_max, out_min, out_max):
     # Asegura que el valor esté dentro del rango de entrada
     value = max(min(value, in_max), in_min)
@@ -381,8 +474,6 @@ def handle_client(conn, addr, update_ui_callback=None):
         critical_thread = threading.Thread(target=handle_critical_messages, args=(acquired_device_id, update_ui_callback))
         non_critical_thread = threading.Thread(target=handle_non_critical_messages, args=(acquired_device_id, update_ui_callback))
 
-
-        
         critical_thread.start()
         non_critical_thread.start()
 
@@ -391,6 +482,17 @@ def handle_client(conn, addr, update_ui_callback=None):
         logging.error("No device_id available, cannot create threads.")
         conn.close()
         return
+
+    # Arrancar el hilo de telemetría AC: lee UDP en localhost y reenvía por TCP al móvil
+    client_stop = threading.Event()
+    send_lock   = threading.Lock()
+    telem_thread = threading.Thread(
+        target=forward_ac_telemetry,
+        args=(conn, client_stop, send_lock),
+        daemon=True
+    )
+    telem_thread.start()
+    logging.info(f"AC telemetry forwarder started for {addr}")
 
     try:
         with conn:
@@ -423,6 +525,9 @@ def handle_client(conn, addr, update_ui_callback=None):
         logging.error(f"Error processing data: {e}")
     
     finally:
+        # Parar hilo de telemetría AC
+        client_stop.set()
+
         logging.info(f"Connection with {addr} closed")
         try:
             for thread in device_states[acquired_device_id]['threads']:
@@ -480,15 +585,17 @@ def handle_non_critical_messages(device_id, update_ui_callback=None):
             time.sleep(0.001)  # Short sleep when no messages
 
 def get_local_ip_for_client(client_ip):
-    client_ip_prefix = '.'.join(client_ip.split('.')[:3]) + '.'
-    for interface in netifaces.interfaces():
-        addrs = netifaces.ifaddresses(interface)
-        if netifaces.AF_INET in addrs:
-            for addr in addrs[netifaces.AF_INET]:
-                ip = addr['addr']
-                if ip.startswith(client_ip_prefix):
-                    return ip
-    return None
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0.1)
+        # connect() does not send any data for UDP, just determines route
+        s.connect((client_ip, 1))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception as e:
+        logging.error(f"Error determining local IP: {e}")
+        return None
 
 shutdown_event = threading.Event()
 

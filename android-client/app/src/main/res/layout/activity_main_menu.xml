@@ -1,97 +1,192 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:padding="24dp"
-    android:background="@color/tokyo_bg"
-    android:baselineAligned="false">
+    android:background="@drawable/geneon_background"
+    android:padding="24dp">
+
+    <!-- Racing Stripe Decoration -->
+    <View
+        android:id="@+id/stripe_red"
+        android:layout_width="8dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/geneon_orange"
+        android:rotation="15"
+        android:transformPivotX="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" 
+        android:alpha="0.8"/>
+
+    <View
+        android:id="@+id/stripe_white"
+        android:layout_width="4dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="4dp"
+        android:background="@color/geneon_white"
+        android:rotation="15"
+        android:transformPivotX="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/stripe_red"
+        app:layout_constraintTop_toTopOf="parent" 
+        android:alpha="0.5"/>
+
+    <!-- Separator Line (Vertical) -->
+    <View
+        android:id="@+id/separator_line"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/geneon_orange"
+        app:layout_constraintBottom_toTopOf="@+id/footer_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Left Side: Branding -->
     <LinearLayout
+        android:id="@+id/branding_container"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
         android:gravity="center"
-        android:paddingEnd="24dp">
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/app_logo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/app_logo"
-            android:layout_marginBottom="16dp"
-            android:elevation="4dp"/>
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_marginBottom="24dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
+            android:src="@drawable/app_logo" /> 
 
         <TextView
             android:id="@+id/welcome_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mobile Wheel"
-            android:textSize="28sp"
-            android:textColor="@color/tokyo_fg"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.05"
-            android:layout_marginBottom="8dp"/>
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="-0.02"
+            android:text="@string/main_menu_title"
+            android:textAllCaps="true"
+            android:textColor="@color/geneon_white"
+            android:textSize="32sp"
+            android:textStyle="italic" 
+            android:shadowColor="@color/geneon_orange"
+            android:shadowDx="4"
+            android:shadowDy="4"
+            android:shadowRadius="8"/>
 
         <TextView
-            android:id="@+id/footer_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="© 2024 Tempestgf"
-            android:textColor="@color/tokyo_gray"
-            android:fontFamily="sans-serif"
-            android:textSize="12sp" />
+            android:layout_marginTop="0dp"
+            android:alpha="0.8"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/main_menu_subtitle"
+            android:textColor="@color/geneon_white"
+            android:textSize="14sp"
+            android:letterSpacing="0.2"
+            android:textAllCaps="true" />
+            
+        <View
+            android:layout_width="100dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/geneon_orange"/>
+
     </LinearLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
 
     <!-- Right Side: Buttons -->
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical"
-        android:gravity="center">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="parent">
 
         <Button
             android:id="@+id/button_start"
-            android:layout_width="280dp"
+            android:layout_width="240dp"
             android:layout_height="56dp"
-            android:text="Start"
-            android:textColor="@color/tokyo_bg"
-            android:textAllCaps="false"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/geneon_button"
+            app:backgroundTint="@null"
+            android:elevation="8dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/button_start_engine"
+            android:textAllCaps="true"
+            android:textColor="@color/white"
             android:textSize="18sp"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/tokyo_button"
-            android:layout_marginBottom="16dp" 
+            android:textStyle="italic"
+            android:letterSpacing="0.05"
             android:stateListAnimator="@null"
-            android:elevation="0dp"/>
+            app:iconTint="@color/white" />
 
         <Button
             android:id="@+id/button_settings"
-            android:layout_width="280dp"
+            android:layout_width="240dp"
             android:layout_height="56dp"
-            android:text="Settings"
-            android:textColor="@color/tokyo_fg"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/tokyo_button_secondary"
-            android:layout_marginBottom="16dp" 
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/geneon_button_secondary"
+            app:backgroundTint="@null"
+            android:elevation="0dp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
             android:stateListAnimator="@null"
-            android:elevation="0dp"/>
+            android:text="@string/button_settings"
+            android:textAllCaps="true"
+            android:textColor="@color/geneon_white"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/button_about"
-            android:layout_width="280dp"
+            android:layout_width="240dp"
             android:layout_height="56dp"
-            android:text="About"
-            android:textColor="@color/tokyo_fg"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            android:fontFamily="sans-serif-medium"
-            android:background="@drawable/tokyo_button_secondary"
+            android:background="@drawable/geneon_button_secondary"
+            app:backgroundTint="@null"
+            android:elevation="0dp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
             android:stateListAnimator="@null"
-            android:elevation="0dp"/>
+            android:text="@string/button_about"
+            android:textAllCaps="true"
+            android:textColor="@color/geneon_white"
+            android:textSize="16sp" />
     </LinearLayout>
-</LinearLayout>
+
+    <!-- Footer Copyright -->
+    <TextView
+        android:id="@+id/footer_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.4"
+        android:fontFamily="sans-serif-medium"
+        android:text="© 2024 Geneon // RACING MOD"
+        android:textColor="@color/racing_silver"
+        android:textSize="10sp"
+        android:letterSpacing="0.1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

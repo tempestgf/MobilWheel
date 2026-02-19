@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    // alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -39,9 +41,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -63,7 +62,9 @@ dependencies {
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("org.jmdns:jmdns:3.5.11")
     implementation ("androidx.appcompat:appcompat:1.3.0")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
 
 
     testImplementation(libs.junit)

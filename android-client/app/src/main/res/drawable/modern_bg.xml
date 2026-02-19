@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base Deep Dark Background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#121212"/>
+        </shape>
+    </item>
+    
+    <!-- Top Left Orange Glow -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:centerX="0.2"
+                android:centerY="0.2"
+                android:gradientRadius="400dp"
+                android:startColor="#33FF6D00"
+                android:endColor="#00000000"
+                android:type="radial" />
+        </shape>
+    </item>
+    
+    <!-- Bottom Right Subtle White/Grey Glow -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:centerX="0.8"
+                android:centerY="0.8"
+                android:gradientRadius="500dp"
+                android:startColor="#1AFFFFFF"
+                android:endColor="#00000000"
+                android:type="radial" />
+        </shape>
+    </item>
+    
+    <!-- Pattern/Mesh Overlay (Simulated with lines) - Optional, keeping simple for now -->
+</layer-list>

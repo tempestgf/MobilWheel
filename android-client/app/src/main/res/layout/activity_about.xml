@@ -1,62 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:background="#1a1b26">
+    android:background="@color/tokyo_bg"
+    android:padding="24dp">
 
-    <!-- Título de la app -->
-    <TextView
-        android:id="@+id/app_title"
+    <!-- Background Elements -->
+    <View
+        android:id="@+id/separator_line"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
+        android:background="#207aa2f7"
+        app:layout_constraintBottom_toTopOf="@+id/footer_text"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Left Side: Branding -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/about_logo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/app_logo"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/app_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@color/tokyo_fg"
+            android:textSize="24sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/app_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/app_version"
+            android:textColor="@color/tokyo_primary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="24sp"
-        android:textColor="#c0caf5"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:paddingBottom="16dp"/>
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.45" />
 
-    <!-- Versión de la app -->
+    <!-- Right Side: Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:paddingStart="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DESCRIPTION"
+            android:textColor="@color/tokyo_primary"
+            android:textSize="12sp"
+            android:letterSpacing="0.1"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/app_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:lineSpacingMultiplier="1.2"
+            android:text="@string/app_description"
+            android:textColor="@color/tokyo_fg_dark"
+            android:textSize="15sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CREDITS"
+            android:textColor="@color/tokyo_primary"
+            android:textSize="12sp"
+            android:letterSpacing="0.1"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/app_authors"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_authors"
+            android:textColor="@color/tokyo_fg"
+            android:layout_marginBottom="32dp"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/button_back"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="@string/back_button"
+            android:textColor="@color/tokyo_fg"
+            android:background="@drawable/tokyo_button_secondary"
+            android:paddingHorizontal="32dp"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"/>
+
+    </LinearLayout>
+
+    <!-- Footer Copyright -->
     <TextView
-        android:id="@+id/app_version"
+        android:id="@+id/footer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/app_version"
-        android:textSize="16sp"
-        android:textColor="#a9b1d6"
-        android:layout_gravity="center"
-        android:paddingBottom="24dp"/>
+        android:alpha="0.5"
+        android:fontFamily="sans-serif-condensed"
+        android:text="© 2024 Tempestgf"
+        android:textColor="@color/tokyo_gray"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Descripción de la app -->
-    <TextView
-        android:id="@+id/app_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_description"
-        android:textSize="16sp"
-        android:textColor="#a9b1d6"
-        android:paddingBottom="24dp"
-        android:lineSpacingMultiplier="1.2"/>
-
-    <!-- Autores -->
-    <TextView
-        android:id="@+id/app_authors"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_authors"
-        android:textSize="16sp"
-        android:textColor="#a9b1d6"
-        android:paddingBottom="32dp"/>
-
-    <!-- Botón para volver -->
-    <Button
-        android:id="@+id/button_back"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/button_background"
-        android:text="@string/back_button"
-        android:textColor="#c0caf5"
-        android:layout_gravity="center"/>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,13 +3,20 @@ package com.tempestgf.steeringwheel
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.util.Calendar
 import com.tempestgf.steeringwheel.R
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_menu)  // Cargar el menú principal
+
+        // Configurar copyright dinámico
+        val footerText: TextView = findViewById(R.id.footer_text)
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        footerText.text = "© $currentYear Tempestgf"
 
         val startButton: Button = findViewById(R.id.button_start)
         startButton.setOnClickListener {

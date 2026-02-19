@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#7aa2f7</color>
-    <color name="colorPrimaryDark">#1a1b26</color>
-    <color name="colorAccent">#bb9af7</color>
+    <color name="colorPrimary">#FF3B30</color> <!-- Racing Red -->
+    <color name="colorPrimaryDark">#121212</color> <!-- Racing Black -->
+    <color name="colorAccent">#FFD60A</color> <!-- Racing Yellow -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     
@@ -10,6 +10,7 @@
     <color name="tokyo_bg">#1a1b26</color>
     <color name="tokyo_bg_light">#24283b</color>
     <color name="tokyo_fg">#c0caf5</color>
+    <color name="tokyo_fg_dark">#a9b1d6</color>
     <color name="tokyo_primary">#7aa2f7</color>
     <color name="tokyo_primary_dark">#3d59a1</color>
     <color name="tokyo_secondary">#bb9af7</color>
@@ -19,4 +20,19 @@
     <color name="tokyo_cyan">#7dcfff</color>
     <color name="tokyo_gray">#565f89</color>
     <color name="ripple_color">#40ffffff</color>
+
+    <!-- Racing Theme Palette -->
+    <color name="racing_red">#FF3B30</color> <!-- Vivid Red -->
+    <color name="racing_dark_red">#D62828</color>
+    <color name="racing_black">#121212</color>
+    <color name="racing_carbon">#1E1E1E</color>
+    <color name="racing_accent_yellow">#FFD60A</color>
+    <color name="racing_white">#F2F2F7</color>
+    <color name="racing_silver">#8E8E93</color>
+
+    <!-- Geneon Palette -->
+    <color name="geneon_orange">#FF6D00</color>
+    <color name="geneon_black">#121212</color>
+    <color name="geneon_dark_grey">#1E1E1E</color>
+    <color name="geneon_white">#FFFFFF</color>
 </resources>

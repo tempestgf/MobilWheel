@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deepest Background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#050505"/>
+        </shape>
+    </item>
+    
+    <!-- Top Left "Speed" Gradient (Orange) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:centerX="0.2"
+                android:centerY="0.2"
+                android:gradientRadius="800dp"
+                android:startColor="#1AFF6D00"
+                android:centerColor="#05FF6D00"
+                android:endColor="#00000000"
+                android:type="radial" />
+        </shape>
+    </item>
+    
+    <!-- Bottom Right Ambient Glow -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:centerX="0.9"
+                android:centerY="0.9"
+                android:gradientRadius="600dp"
+                android:startColor="#11FFFFFF"
+                android:endColor="#00000000"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

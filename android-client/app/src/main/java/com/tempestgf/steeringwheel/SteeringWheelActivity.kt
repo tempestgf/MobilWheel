@@ -1,48 +1,61 @@
 package com.tempestgf.steeringwheel
 
 import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.appcompat.app.AppCompatActivity
+import android.media.AudioAttributes
+import android.media.SoundPool
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.*
 import java.io.DataOutputStream
 import java.io.IOException
-import java.net.Socket
-import java.util.concurrent.LinkedBlockingQueue
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import java.net.InetAddress
-import androidx.appcompat.app.AlertDialog
-import android.text.InputType
-import android.widget.EditText
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.Inet4Address
+import java.net.InetAddress
 import java.net.NetworkInterface
+import java.net.Socket
 import java.net.SocketTimeoutException
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.AnimatorListenerAdapter
-import android.media.AudioAttributes
-import android.media.SoundPool
-import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.util.concurrent.LinkedBlockingQueue
+
 class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
+
+    // ── Sensores ──────────────────────────────────────────────────────────────
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
+
+    // Suavizado de ángulo para la contra-rotación del HUD (estilo MOZA Vision GS)
+    private var smoothedHudAngle = 0f
+    private val HUD_ALPHA = 0.18f
+
+    // ── Vistas funcionales ────────────────────────────────────────────────────
     private lateinit var accelerateIndicator: View
     private lateinit var brakeIndicator: View
     private lateinit var accelerateTopIndicator: View
@@ -51,25 +64,50 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var buttonLeftBottom: Button
     private lateinit var buttonRightTop: Button
     private lateinit var buttonRightBottom: Button
+
+    // ── Vistas HUD ────────────────────────────────────────────────────────────
+    private lateinit var gearContainer: LinearLayout
+    private lateinit var gearIndicatorView: TextView
+    private lateinit var speedValueView: TextView
+    private lateinit var rpmDots: List<View>   // 10 LEDs: verde(1-4) → amarillo(5-7) → rojo(8-10, zona de cambio)
+    private lateinit var ipAddressDisplay: TextView
+    private lateinit var rpmIndicator: TextView
+    private lateinit var connectionLabel: TextView
+    private lateinit var connectionDot: View
+
+    // ── Red TCP ───────────────────────────────────────────────────────────────
     private var serverAddress = "192.168.176.150"
     private val serverPort = 12345
     private var socket: Socket? = null
     private var outputStream: DataOutputStream? = null
+    private val commandQueue = LinkedBlockingQueue<String>()
+
+    // ── Telemetría AC (UDP) ───────────────────────────────────────────────────
+    /**
+     * Puerto UDP de telemetría de Assetto Corsa.
+     * AC escucha en este puerto en el PC y envía RTCarInfo periódicamente.
+     */
+    private val AC_TELEMETRY_PORT = 9996
+    private var acSocket: DatagramSocket? = null
+    private var acJob: Job? = null
+
+    // ── Parámetros de steering ────────────────────────────────────────────────
     private var lastY: Float = 0f
-    private val threshold = 0.010f // Umbral para filtrar datos insignificantes
-    private var maxSteeringAngle: Float = 90f // Declarar como Float en lugar de Int
+    private val threshold = 0.010f
+    private var maxSteeringAngle: Float = 90f
     private var swipeThresholdInPx: Float = 0f
-    private var accelerationSensitivity: Float = 0.5f // Valor por defecto
-    private var brakeSensitivity: Float = 0.5f // Valor por defecto
-    private var clickTimeLimit: Float = 0.25f // Valor por defecto
+    private var accelerationSensitivity: Float = 0.5f
+    private var brakeSensitivity: Float = 0.5f
+    private var clickTimeLimit: Float = 0.25f
+
+    // ── Audio y vibración ─────────────────────────────────────────────────────
     private lateinit var soundPool: SoundPool
     private var soundId: Int = 0
     private lateinit var vibrator: Vibrator
 
+    private var isDialogShowing = false
 
-    // Cola para comandos a ser enviados al servidor
-    private val commandQueue = LinkedBlockingQueue<String>()
-
+    // ─────────────────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -80,261 +118,540 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
         if (accelerometer != null) {
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
-            Log.d("SteeringWheelActivity", "Accelerometer sensor registered")
         } else {
             Toast.makeText(this, "Accelerometer not available", Toast.LENGTH_SHORT).show()
-            Log.e("SteeringWheelActivity", "Accelerometer sensor not available")
         }
 
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
-
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
-            .setAudioAttributes(audioAttributes)
-            .build()
-
+        soundPool = SoundPool.Builder().setMaxStreams(1).setAudioAttributes(audioAttributes).build()
         soundId = soundPool.load(this, R.raw.gear_shift, 1)
 
         vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
+            val mgr = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            mgr.defaultVibrator
         } else {
+            @Suppress("DEPRECATION")
             getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
+        setConnectionState(false, null)
         showConnectionOptions()
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // INICIALIZACIÓN DE VISTAS
+    // ─────────────────────────────────────────────────────────────────────────
     private fun initializeUIElements() {
-        accelerateIndicator = findViewById(R.id.accelerateIndicator)
-        brakeIndicator = findViewById(R.id.brakeIndicator)
+        accelerateIndicator    = findViewById(R.id.accelerateIndicator)
+        brakeIndicator         = findViewById(R.id.brakeIndicator)
         accelerateTopIndicator = findViewById(R.id.accelerateTopIndicator)
-        brakeTopIndicator = findViewById(R.id.brakeTopIndicator)
-        buttonLeftTop = findViewById(R.id.button_left_top)
-        buttonLeftBottom = findViewById(R.id.button_left_bottom)
-        buttonRightTop = findViewById(R.id.button_right_top)
-        buttonRightBottom = findViewById(R.id.button_right_bottom)
+        brakeTopIndicator      = findViewById(R.id.brakeTopIndicator)
+        buttonLeftTop          = findViewById(R.id.button_left_top)
+        buttonLeftBottom       = findViewById(R.id.button_left_bottom)
+        buttonRightTop         = findViewById(R.id.button_right_top)
+        buttonRightBottom      = findViewById(R.id.button_right_bottom)
+
+        gearContainer      = findViewById(R.id.gearContainer)
+        gearIndicatorView  = findViewById(R.id.gearIndicator)
+        speedValueView     = findViewById(R.id.speedValue)
+        ipAddressDisplay   = findViewById(R.id.ipAddressDisplay)
+        rpmIndicator       = findViewById(R.id.rpmIndicator)
+        connectionLabel    = findViewById(R.id.connectionLabel)
+        connectionDot      = findViewById(R.id.connectionDot)
+
+        rpmDots = listOf(
+            R.id.rpmDot1,  R.id.rpmDot2,  R.id.rpmDot3,  R.id.rpmDot4,  R.id.rpmDot5,
+            R.id.rpmDot6,  R.id.rpmDot7,  R.id.rpmDot8,  R.id.rpmDot9,  R.id.rpmDot10
+        ).map { id -> findViewById(id) }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ESTADO DE CONEXIÓN
+    // ─────────────────────────────────────────────────────────────────────────
+    private fun setConnectionState(connected: Boolean, ip: String?) {
+        runOnUiThread {
+            if (connected && ip != null) {
+                connectionLabel.text = "CONNECTED"
+                connectionLabel.setTextColor(0xFF4ADE80.toInt())
+                connectionDot.setBackgroundResource(R.drawable.cockpit_dot_green)
+                ipAddressDisplay.text = ip
+            } else {
+                connectionLabel.text = "OFFLINE"
+                connectionLabel.setTextColor(0xFFFF6B6B.toInt())
+                connectionDot.background = null
+                connectionDot.setBackgroundColor(0x66FF6B6B.toInt())
+                ipAddressDisplay.text = "-.-.-.−"
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // TELEMETRÍA ASSETTO CORSA (UDP port 9996)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Inicia la recepción de telemetría UDP de Assetto Corsa con reintento automático.
+     *
+     * Protocolo AC UDP:
+     *  1. Enviar HandshakerRequest(identifier=1, version=1, operationId=0) → puerto 9996
+     *  2. Recibir HandshakerResponse (208 bytes): confirma que AC está activo en pista
+     *  3. Enviar HandshakerRequest(operationId=1) para suscribirse a RTCarInfo
+     *  4. AC envía RTCarInfo periódicamente. Campos que usamos:
+     *       offset  8: float speedKmh
+     *       offset 68: float engineRPM
+     *       offset 76: int   gear  (0=R, 1=N, 2=1ª, 3=2ª...)
+     *
+     * Si AC no responde (menú, carga…), reintenta cada 5 segundos automáticamente.
+     */
+    private fun startAcTelemetry() {
+        acJob?.cancel()
+        acJob = CoroutineScope(Dispatchers.IO).launch {
+            // Retry loop: reconecta si el handshake falla o la sesión se interrumpe
+            while (isActive) {
+                try {
+                    runAcTelemetrySession()
+                } catch (e: CancellationException) {
+                    break
+                } catch (e: SocketTimeoutException) {
+                    Log.d("AC_Telemetry", "AC sin respuesta — reintentando en 5 s…")
+                } catch (e: Exception) {
+                    Log.d("AC_Telemetry", "Sesión AC terminada (${e.message}) — reintentando…")
+                }
+                if (isActive) {
+                    try { delay(5000) } catch (_: CancellationException) { break }
+                }
+            }
+        }
+    }
+
+    /**
+     * Una sesión de telemetría: handshake → suscripción → bucle de recepción.
+     * Lanza SocketTimeoutException si AC no responde al handshake (menú, no hay sesión).
+     */
+    private suspend fun runAcTelemetrySession() {
+        acSocket?.close()
+        val socket = DatagramSocket()
+        acSocket = socket
+
+        val pcAddress = InetAddress.getByName(serverAddress)
+
+        // 1. Handshake inicial
+        sendAcHandshake(pcAddress, operationId = 0)
+
+        // 2. Esperar respuesta (lanza SocketTimeoutException si AC no está en pista)
+        val hsBuffer = ByteArray(256)
+        val hsPacket = DatagramPacket(hsBuffer, hsBuffer.size)
+        socket.soTimeout = 3000
+        socket.receive(hsPacket)
+        Log.d("AC_Telemetry", "Handshake OK (${hsPacket.length} bytes) — conectado a AC")
+
+        // 3. Suscribirse a RTCarInfo en tiempo real
+        sendAcHandshake(pcAddress, operationId = 1)
+        socket.soTimeout = 2000
+
+        // 4. Bucle de recepción de RTCarInfo
+        while (currentCoroutineContext().isActive) {
+            val buf = ByteArray(1024)
+            val pkt = DatagramPacket(buf, buf.size)
+            try {
+                socket.receive(pkt)
+                parseAcRtCarInfo(pkt.data, pkt.length)
+            } catch (e: SocketTimeoutException) {
+                // AC pausado/en menú durante la sesión, seguir esperando
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RECEPTOR TCP DE TELEMETRÍA (el servidor Python reenvía datos de AC)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Arranca una corutina que lee líneas entrantes del socket TCP del servidor Python.
+     * El servidor envía "T:velocidad:marcha:rpm\n" cuando recibe datos de AC.
+     */
+    private fun startTcpReceiver() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val reader = socket?.getInputStream()?.bufferedReader() ?: return@launch
+                while (isConnected()) {
+                    try {
+                        val line = reader.readLine() ?: break   // null = servidor cerró
+                        if (line.startsWith("T:")) parseTelemetryLine(line)
+                    } catch (e: java.net.SocketTimeoutException) {
+                        // Sin datos aún, seguir esperando
+                    } catch (e: IOException) {
+                        break
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("TcpReceiver", "Error: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Parsea "T:velocidad:marcha:rpm" y actualiza el HUD.
+     * Marcha:  0=R, 1=N, 2=1ª, 3=2ª, …  (igual que AC UDP)
+     * 
+     * Lógica mejorada de cambio óptimo:
+     * - Verde (dots 1-4): 40-70% del rango - Zona segura
+     * - Amarillo (dots 5-7): 70-85% del rango - Altas RPM
+     * - Rojo (dots 8-10): 85-100% del rango - ¡CAMBIO ÓPTIMO!
+     * 
+     * El punto de cambio óptimo se calcula dinámicamente según:
+     * - El rango de RPM del coche (6000-15000+)
+     * - La curva de potencia típica del motor
+     * Cuando los 3 dots rojos están encendidos = momento perfecto para cambiar
+     */
+    private fun parseTelemetryLine(line: String) {
+        val parts = line.split(":")
+        if (parts.size != 4) return
+        val speed   = parts[1].toIntOrNull() ?: return
+        val gearRaw = parts[2].toIntOrNull() ?: return
+        val rpm     = parts[3].toIntOrNull() ?: return
+
+        // RPM adaptativo: detecta el rango máximo del coche
+        val rpmMax = when {
+            rpm > 13000 -> 16000f  // F1, LMP1 (muy alta revolución)
+            rpm > 10000 -> 13000f  // GT3, prototipos modernos
+            rpm > 8000  -> 10000f  // Deportivos de calle, GT4
+            rpm > 6500  -> 8500f   // Deportivos clásicos
+            else        -> 7000f   // Coches turismo, clásicos lentos
+        }
+        
+        val rpmFraction = (rpm / rpmMax).coerceIn(0f, 1f)
+        
+        // Zona de cambio óptimo: 85-95% del rango
+        // (evita llegar al limitador que suele estar a 98-100%)
+        val optimalShiftStart = 0.85f
+        val redlineStart = 0.95f
+
+        runOnUiThread {
+            gearIndicatorView.text = gearLabel(gearRaw)
+            speedValueView.text    = speed.toString()
+            
+            // Actualizar RPM en barra superior con color dinámico
+            rpmIndicator.text = "$rpm RPM"
+            
+            // Color del texto según zona
+            rpmIndicator.setTextColor(when {
+                rpmFraction >= redlineStart      -> 0xFFFF0000.toInt()  // Rojo brillante (limitador cerca!)
+                rpmFraction >= optimalShiftStart -> 0xFFf7768e.toInt()  // Rosa/Rojo (¡cambiar ahora!)
+                rpmFraction >= 0.70f             -> 0xFFe0af68.toInt()  // Amarillo (prepararse)
+                else                             -> 0xFFff9e64.toInt()  // Naranja (normal)
+            })
+            
+            // Actualizar los 10 dots con lógica mejorada
+            // Dots 1-4 (verde): 40-70% del rango
+            // Dots 5-7 (amarillo): 70-85% del rango
+            // Dots 8-10 (rojo): 85-100% del rango (¡ZONA DE CAMBIO!)
+            rpmDots.forEachIndexed { i, dot ->
+                // Calcular umbral de cada dot (distribución no lineal)
+                val dotThreshold = when (i) {
+                    0 -> 0.40f  // Dot 1: 40%
+                    1 -> 0.50f  // Dot 2: 50%
+                    2 -> 0.60f  // Dot 3: 60%
+                    3 -> 0.70f  // Dot 4: 70%
+                    4 -> 0.75f  // Dot 5: 75% (amarillo)
+                    5 -> 0.80f  // Dot 6: 80%
+                    6 -> 0.85f  // Dot 7: 85%
+                    7 -> 0.88f  // Dot 8: 88% (rojo - inicio zona óptima)
+                    8 -> 0.92f  // Dot 9: 92% (rojo - cambiar ya!)
+                    9 -> 0.95f  // Dot 10: 95% (rojo - limitador cerca!)
+                    else -> 1.0f
+                }
+                
+                // Brillo máximo cuando activo, muy tenue cuando inactivo
+                dot.alpha = if (rpmFraction >= dotThreshold) 1.0f else 0.15f
+                
+                // Parpadeo en los dots rojos cuando estás en zona de cambio óptima
+                if (i >= 7 && rpmFraction >= optimalShiftStart && rpmFraction < redlineStart) {
+                    // Efecto de pulsación suave para indicar "cambiar ahora"
+                    dot.alpha = if (rpmFraction >= dotThreshold) 1.0f else 0.4f
+                }
+            }
+        }
+    }
+
+    /**
+     * Envía un paquete de handshake al servidor de Assetto Corsa.
+     * HandshakerRequest: { int identifier=1, int version=1, int operationId }
+     */
+    private fun sendAcHandshake(address: InetAddress, operationId: Int) {
+        val buf = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
+        buf.putInt(1)           // identifier
+        buf.putInt(1)           // version
+        buf.putInt(operationId)
+        val pkt = DatagramPacket(buf.array(), 12, address, AC_TELEMETRY_PORT)
+        acSocket?.send(pkt)
+    }
+
+    /**
+     * Parsea el struct RTCarInfo de Assetto Corsa (little-endian, Windows struct layout).
+     *
+     * Especificación oficial (docs.google.com/document/d/1KfkZiIluXZ6mMhLWfDX1qAGbvhGRC3ZUzjVIt5FQpp4):
+     *
+     *  +0   char     identifier   → 'a'  (1 byte)
+     *  +1   byte[3]  padding      (alineación del int que sigue)
+     *  +4   int      size
+     *  +8   float    speed_Kmh    ← leemos aquí
+     *  +12  float    speed_Mph
+     *  +16  float    speed_Ms
+     *  +20  bool[6]  flags (abs x2, tc x2, pit, limiter)
+     *  +26  byte[2]  padding      (alineación del float que sigue)
+     *  +28  float    accG_vertical
+     *  +32  float    accG_horizontal
+     *  +36  float    accG_frontal
+     *  +40  int      lapTime
+     *  +44  int      lastLap
+     *  +48  int      bestLap
+     *  +52  int      lapCount
+     *  +56  float    gas
+     *  +60  float    brake
+     *  +64  float    clutch
+     *  +68  float    engineRPM
+     *  +72  float    steer
+     *  +76  int      gear         ← leemos aquí (0=R, 1=N, 2=1ª, 3=2ª…)
+     */
+    private fun parseAcRtCarInfo(data: ByteArray, length: Int) {
+        if (length < 80) return
+
+        // byte 0 = 'a' (identificador char según spec AC)
+        if (data[0] != 'a'.code.toByte()) return
+
+        val buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
+
+        buf.position(8)
+        val speedKmh = buf.getFloat()
+
+        buf.position(68)
+        val engineRPM = buf.getFloat()
+
+        buf.position(76)
+        val rawGear = buf.getInt()
+
+        // Descartar paquetes con valores imposibles
+        if (speedKmh < 0f || speedKmh > 500f) return
+        if (engineRPM < 0f || engineRPM > 20000f) return
+
+        val gearText    = gearLabel(rawGear)
+        val speedText   = speedKmh.toInt().toString()
+        val rpmFraction = (engineRPM / 9000f).coerceIn(0f, 1f)
+
+        runOnUiThread {
+            gearIndicatorView.text = gearText
+            speedValueView.text    = speedText
+            // Iluminar dots según RPM: dot i se activa cuando rpm >= (i+1)/10 del total
+            rpmDots.forEachIndexed { i, dot ->
+                dot.alpha = if (rpmFraction >= (i + 1) / 10f) 1.0f else 0.12f
+            }
+        }
+    }
+
+    /**
+     * Convierte el int de marcha de AC a texto para el HUD.
+     * Codificación AC: 0 = Reversa, 1 = Neutro, 2 = 1ª, 3 = 2ª, …
+     */
+    private fun gearLabel(gear: Int): String = when {
+        gear <= 0 -> "R"
+        gear == 1 -> "N"
+        else      -> (gear - 1).toString()
+    }
+
+    private fun stopAcTelemetry() {
+        acJob?.cancel()
+        acJob = null
+        try { acSocket?.close() } catch (_: Exception) {}
+        acSocket = null
+        runOnUiThread {
+            gearIndicatorView.text = "N"
+            speedValueView.text    = "0"
+            rpmIndicator.text      = "0 RPM"
+            rpmIndicator.setTextColor(0xFFff9e64.toInt())  // Color naranja por defecto
+            rpmDots.forEach { it.alpha = 0.12f }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SENSOR: ACELERÓMETRO (steering + contra-rotación HUD)
+    // ─────────────────────────────────────────────────────────────────────────
+    override fun onSensorChanged(event: SensorEvent?) {
+        event?.let {
+            if (it.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                val rawY = it.values[1]
+                val rawX = it.values[0]
+
+                var steeringAngle = Math.toDegrees(
+                    Math.atan2(rawY.toDouble(), rawX.toDouble())
+                ).toFloat()
+
+                if (steeringAngle > 180) steeringAngle -= 360
+                else if (steeringAngle < -180) steeringAngle += 360
+
+                // ── Contra-rotación del HUD (indicador de marcha siempre recto) ──
+                smoothedHudAngle = HUD_ALPHA * steeringAngle + (1f - HUD_ALPHA) * smoothedHudAngle
+                runOnUiThread { gearContainer.rotation = -smoothedHudAngle }
+
+                // ── Enviar ángulo al servidor ──────────────────────────────────
+                val normalized = mapSteeringAngleToServerRange(steeringAngle, maxSteeringAngle)
+                val limited    = limitSteeringAngle(normalized, maxSteeringAngle)
+
+                val rightInd = findViewById<View>(R.id.right_max_angle_indicator)
+                val leftInd  = findViewById<View>(R.id.left_max_angle_indicator)
+                rightInd.visibility = if (limited >= maxSteeringAngle) View.VISIBLE else View.GONE
+                leftInd.visibility  = if (limited <= -maxSteeringAngle) View.VISIBLE else View.GONE
+
+                if (Math.abs(limited - lastY) > threshold) {
+                    lastY = limited
+                    queueCommand("A:$limited")
+                }
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    private fun limitSteeringAngle(angle: Float, max: Float) = angle.coerceIn(-max, max)
+    private fun mapSteeringAngleToServerRange(angle: Float, max: Float) = (angle / max) * 10f
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LISTENERS DE TOQUE
+    // ─────────────────────────────────────────────────────────────────────────
     @SuppressLint("ClickableViewAccessibility")
     private fun setupTouchListeners() {
-        val leftSide: View = findViewById(R.id.left_side)
+        val leftSide: View  = findViewById(R.id.left_side)
         val rightSide: View = findViewById(R.id.right_side)
 
         leftSide.setOnTouchListener(object : View.OnTouchListener {
-            private var initialY: Float = 0f
-            private var initialTime: Long = 0
-
+            private var initialY = 0f
             override fun onTouch(v: View?, event: MotionEvent): Boolean {
                 when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        initialY = event.y
-                        initialTime = System.currentTimeMillis()
-                        startBrake()
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val deltaY = event.y - initialY
-                        if (Math.abs(deltaY) > swipeThresholdInPx) {
-                            updateBrake(deltaY)
-                        }
-                    }
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                        val elapsedTime = (System.currentTimeMillis() - initialTime) / 1000.0
-                        if (elapsedTime <= clickTimeLimit) {
-                            // Handle click within time limit
-                        }
-                        stopBrake()
-                    }
+                    MotionEvent.ACTION_DOWN  -> { initialY = event.y; startBrake() }
+                    MotionEvent.ACTION_MOVE  -> updateBrake(event.y - initialY)
+                    MotionEvent.ACTION_UP,
+                    MotionEvent.ACTION_CANCEL -> stopBrake()
                 }
                 return true
             }
         })
 
         rightSide.setOnTouchListener(object : View.OnTouchListener {
-            private var initialY: Float = 0f
-            private var initialTime: Long = 0
-
+            private var initialY = 0f
             override fun onTouch(v: View?, event: MotionEvent): Boolean {
                 when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        initialY = event.y
-                        initialTime = System.currentTimeMillis()
-                        startAccelerate()
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val deltaY = event.y - initialY
-                        if (Math.abs(deltaY) > swipeThresholdInPx) {
-                            updateAccelerate(deltaY)
-                        }
-                    }
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                        val elapsedTime = (System.currentTimeMillis() - initialTime) / 1000.0
-                        if (elapsedTime <= clickTimeLimit) {
-                            // Handle click within time limit
-                        }
-                        stopAccelerate()
-                    }
+                    MotionEvent.ACTION_DOWN  -> { initialY = event.y; startAccelerate() }
+                    MotionEvent.ACTION_MOVE  -> updateAccelerate(event.y - initialY)
+                    MotionEvent.ACTION_UP,
+                    MotionEvent.ACTION_CANCEL -> stopAccelerate()
                 }
                 return true
             }
         })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        sensorManager.unregisterListener(this)
-        soundPool.release() // Release SoundPool resources
-        closeConnection()
+    // ─────────────────────────────────────────────────────────────────────────
+    // FRENO  (deslizante rojo de arriba abajo)
+    // ─────────────────────────────────────────────────────────────────────────
+    private fun startBrake() {
+        brakeIndicator.visibility = View.VISIBLE
+        brakeIndicator.layoutParams.height = 0
+        brakeIndicator.requestLayout()
     }
 
-    private fun limitSteeringAngle(angle: Float, maxAngle: Float): Float {
-        return angle.coerceIn(-maxAngle, maxAngle)
-    }
-    override fun onSensorChanged(event: SensorEvent?) {
-        event?.let {
-            if (it.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                val rawY = it.values[1]  // Eje Y: rotación lateral
-                val rawX = it.values[0]  // Eje X: rotación frontal
-
-                // Calcular el ángulo en grados usando atan2
-                var steeringAngle = Math.toDegrees(Math.atan2(rawY.toDouble(), rawX.toDouble())).toFloat()
-
-                // Asegurar que el ángulo esté dentro del rango -180 a 180 grados
-                if (steeringAngle > 180) {
-                    steeringAngle -= 360
-                } else if (steeringAngle < -180) {
-                    steeringAngle += 360
-                }
-
-                // Normalizar el ángulo basado en el ángulo máximo configurado en Settings
-                val normalizedY = mapSteeringAngleToServerRange(steeringAngle, maxSteeringAngle)
-
-                val limitedY = limitSteeringAngle(normalizedY, maxSteeringAngle)
-
-                // Mostrar indicadores si se alcanza el ángulo máximo
-                val rightIndicator = findViewById<View>(R.id.right_max_angle_indicator)
-                val leftIndicator = findViewById<View>(R.id.left_max_angle_indicator)
-
-                if (limitedY >= maxSteeringAngle) {
-                    rightIndicator.visibility = View.VISIBLE
-                } else {
-                    rightIndicator.visibility = View.GONE
-                }
-
-                if (limitedY <= -maxSteeringAngle) {
-                    leftIndicator.visibility = View.VISIBLE
-                } else {
-                    leftIndicator.visibility = View.GONE
-                }
-
-                if (Math.abs(limitedY - lastY) > threshold) {
-                    lastY = limitedY
-                    queueCommand("A:$limitedY")
-                }
-            }
-        }
+    private fun stopBrake() {
+        brakeIndicator.visibility = View.GONE
+        brakeTopIndicator.visibility = View.GONE
+        queueCommand("C:0")
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Do something here if sensor accuracy changes
-    }
-    private fun mapSteeringAngleToServerRange(angle: Float, maxSteeringAngle: Float): Float {
-        // Mapea el ángulo desde el rango [-maxSteeringAngle, maxSteeringAngle] al rango [-10, 10]
-        return (angle / maxSteeringAngle) * 10f
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        val sharedPrefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
-        val maxSteeringAngle = sharedPrefs.getInt("steering_angle", 90) // Valor por defecto 90°
-
-        accelerationSensitivity = sharedPrefs.getFloat(SettingsActivity.PREF_ACCELERATOR_SENSITIVITY, SettingsActivity.DEFAULT_ACCELERATOR_SENSITIVITY)
-        brakeSensitivity = sharedPrefs.getFloat(SettingsActivity.PREF_BRAKE_SENSITIVITY, SettingsActivity.DEFAULT_BRAKE_SENSITIVITY)
-        clickTimeLimit = sharedPrefs.getFloat(SettingsActivity.PREF_CLICK_TIME_LIMIT, SettingsActivity.DEFAULT_CLICK_TIME_LIMIT)
-        val savedSwipeThreshold = sharedPrefs.getFloat(SettingsActivity.PREF_SWIPE_THRESHOLD, SettingsActivity.DEFAULT_SWIPE_THRESHOLD)
-
-        swipeThresholdInPx = savedSwipeThreshold * resources.displayMetrics.xdpi / 25.4f
-
-        updateMaxSteeringAngle(maxSteeringAngle)
+    private fun updateBrake(deltaY: Float) {
+        val progress = (deltaY * brakeSensitivity).toInt().coerceIn(0, 100)
+        val lp = brakeIndicator.layoutParams
+        lp.height = (resources.displayMetrics.heightPixels * (progress / 100.0)).toInt()
+        brakeIndicator.layoutParams = lp
+        brakeIndicator.visibility = View.VISIBLE
+        brakeTopIndicator.visibility = if (progress >= 100) View.VISIBLE else View.GONE
+        queueCommand("C:$progress")
     }
 
-    private fun updateMaxSteeringAngle(angle: Int) {
-        // Guardamos el ángulo máximo de giro permitido
-        this.maxSteeringAngle = angle.toFloat()
-    }
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                handleButtonClick("VOLUME_UP")
-                return true
-            }
-
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                handleButtonClick("VOLUME_DOWN")
-                return true
-            }
-
-            else -> return super.onKeyDown(keyCode, event)
-        }
+    // ─────────────────────────────────────────────────────────────────────────
+    // ACELERADOR  (deslizante verde de arriba abajo)
+    // ─────────────────────────────────────────────────────────────────────────
+    private fun startAccelerate() {
+        accelerateIndicator.visibility = View.VISIBLE
+        accelerateIndicator.layoutParams.height = 0
+        accelerateIndicator.requestLayout()
     }
 
-    private fun handleButtonClick(command: String) {
-        Log.d("MainActivity", "Button clicked: $command")
-        queueCommand(command)
-        // Iniciar la animación después de enviar el comando
-        animateButtonPress(findViewById(R.id.button_right_top)) // Ejemplo de botón
+    private fun stopAccelerate() {
+        accelerateIndicator.visibility = View.GONE
+        accelerateTopIndicator.visibility = View.GONE
+        queueCommand("B:0")
     }
 
+    private fun updateAccelerate(deltaY: Float) {
+        val progress = (deltaY * accelerationSensitivity).toInt().coerceIn(0, 100)
+        val lp = accelerateIndicator.layoutParams
+        lp.height = (resources.displayMetrics.heightPixels * (progress / 100.0)).toInt()
+        accelerateIndicator.layoutParams = lp
+        accelerateIndicator.visibility = View.VISIBLE
+        accelerateTopIndicator.visibility = if (progress >= 100) View.VISIBLE else View.GONE
+        queueCommand("B:$progress")
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // BOTONES DE ACCIÓN
+    // ─────────────────────────────────────────────────────────────────────────
     @SuppressLint("ClickableViewAccessibility")
     private fun setupButtonListeners() {
-        val buttonTouchListener = View.OnTouchListener { v, event ->
+        val listener = View.OnTouchListener { v, event ->
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    // Guardar la posición inicial y el tiempo
+                MotionEvent.ACTION_DOWN ->
                     v.tag = Pair(event.y, System.currentTimeMillis())
 
-                }
                 MotionEvent.ACTION_MOVE -> {
-                    val (initialY, _) = v.tag as Pair<Float, Long>
-                    val deltaY = event.y - initialY
-
-                    if (Math.abs(deltaY) > swipeThresholdInPx) {
-                        // Es un slide, así que actualiza el brake o accelerate según el botón
-                        when (v.id) {
-                            R.id.button_left_top, R.id.button_left_bottom -> updateBrake(deltaY)
-                            R.id.button_right_top, R.id.button_right_bottom -> updateAccelerate(deltaY)
+                    @Suppress("UNCHECKED_CAST")
+                    val tag = v.tag as? Pair<Float, Long>
+                    if (tag != null) {
+                        val dy = event.y - tag.first
+                        if (Math.abs(dy) > swipeThresholdInPx) {
+                            when (v.id) {
+                                R.id.button_left_top, R.id.button_left_bottom   -> updateBrake(dy)
+                                R.id.button_right_top, R.id.button_right_bottom -> updateAccelerate(dy)
+                            }
+                            return@OnTouchListener true
                         }
-                        return@OnTouchListener true // Consumir el evento como un deslizamiento
                     }
                 }
-                MotionEvent.ACTION_UP -> {
-                    val (initialY, initialTime) = v.tag as Pair<Float, Long>
-                    val deltaY = event.y - initialY
-                    val elapsedTime = (System.currentTimeMillis() - initialTime) / 1000.0
 
-                    if (Math.abs(deltaY) <= swipeThresholdInPx && elapsedTime <= clickTimeLimit) {
-                        // Esto es un "click", así que ejecuta la animación
-                        animateButtonPress(v)
-                        playShiftSound()
-                        vibrate(75)                        // Ejecuta la acción del botón según el ID
-                        when (v.id) {
-                            R.id.button_left_top -> queueCommand("D")
-                            R.id.button_left_bottom -> queueCommand("E")
-                            R.id.button_right_top -> queueCommand("F")
-                            R.id.button_right_bottom -> queueCommand("G")
-                        }
-                        v.performClick() // Activar la acción del click
-                    } else {
-                        // Esto fue un slide, así que asegúrate de detener el brake o accelerate
-                        when (v.id) {
-                            R.id.button_left_top, R.id.button_left_bottom -> stopBrake()
-                            R.id.button_right_top, R.id.button_right_bottom -> stopAccelerate()
+                MotionEvent.ACTION_UP -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val tag = v.tag as? Pair<Float, Long>
+                    if (tag != null) {
+                        val dy      = event.y - tag.first
+                        val elapsed = (System.currentTimeMillis() - tag.second) / 1000.0
+                        if (Math.abs(dy) <= swipeThresholdInPx && elapsed <= clickTimeLimit) {
+                            animateButtonPress(v)
+                            playShiftSound()
+                            vibrate(75)
+                            when (v.id) {
+                                R.id.button_left_top     -> queueCommand("D")
+                                R.id.button_left_bottom  -> queueCommand("E")
+                                R.id.button_right_top    -> queueCommand("F")
+                                R.id.button_right_bottom -> queueCommand("G")
+                            }
+                            v.performClick()
+                        } else {
+                            when (v.id) {
+                                R.id.button_left_top, R.id.button_left_bottom   -> stopBrake()
+                                R.id.button_right_top, R.id.button_right_bottom -> stopAccelerate()
+                            }
                         }
                     }
                 }
@@ -342,16 +659,56 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
             true
         }
 
-        // Asigna el listener a todos los botones
-        buttonLeftTop.setOnTouchListener(buttonTouchListener)
-        buttonLeftBottom.setOnTouchListener(buttonTouchListener)
-        buttonRightTop.setOnTouchListener(buttonTouchListener)
-        buttonRightBottom.setOnTouchListener(buttonTouchListener)
+        buttonLeftTop.setOnTouchListener(listener)
+        buttonLeftBottom.setOnTouchListener(listener)
+        buttonRightTop.setOnTouchListener(listener)
+        buttonRightBottom.setOnTouchListener(listener)
     }
-    private fun playShiftSound() {
-        CoroutineScope(Dispatchers.IO).launch {
-            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+
+    private fun animateButtonPress(view: View) {
+        CoroutineScope(Dispatchers.Main).launch {
+            view.isClickable = true
+            val rotY = if (view.id == R.id.button_left_top || view.id == R.id.button_left_bottom) -5f else 5f
+            val press = AnimatorSet().apply {
+                playTogether(
+                    ObjectAnimator.ofFloat(view, "rotationY", rotY),
+                    ObjectAnimator.ofFloat(view, "scaleX", 0.97f),
+                    ObjectAnimator.ofFloat(view, "scaleY", 0.97f)
+                )
+                duration = 10
+            }
+            val release = AnimatorSet().apply {
+                playTogether(
+                    ObjectAnimator.ofFloat(view, "rotationY", 0f),
+                    ObjectAnimator.ofFloat(view, "scaleX", 1f),
+                    ObjectAnimator.ofFloat(view, "scaleY", 1f)
+                )
+                duration = 10
+            }
+            press.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(a: Animator) { release.start() }
+            })
+            release.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(a: Animator) { view.isClickable = true }
+            })
+            press.start()
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // TECLAS DE VOLUMEN
+    // ─────────────────────────────────────────────────────────────────────────
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean = when (keyCode) {
+        KeyEvent.KEYCODE_VOLUME_UP   -> { queueCommand("VOLUME_UP"); true }
+        KeyEvent.KEYCODE_VOLUME_DOWN -> { queueCommand("VOLUME_DOWN"); true }
+        else -> super.onKeyDown(keyCode, event)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AUDIO Y VIBRACIÓN
+    // ─────────────────────────────────────────────────────────────────────────
+    private fun playShiftSound() {
+        CoroutineScope(Dispatchers.IO).launch { soundPool.play(soundId, 1f, 1f, 1, 0, 1f) }
     }
 
     private fun vibrate(duration: Long) {
@@ -359,405 +716,227 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
             } else {
+                @Suppress("DEPRECATION")
                 vibrator.vibrate(duration)
             }
         }
     }
 
-    private fun animateButtonPress(view: View) {
-        // Ejecutar la animación en un Coroutine para no bloquear el hilo principal
-        CoroutineScope(Dispatchers.Main).launch {
-            // Asegúrate de que el botón sea siempre interactivo
-            view.isClickable = true
-
-            // Crear animación de rotación en el eje Y
-            val rotationY = when (view.id) {
-                R.id.button_left_top, R.id.button_left_bottom -> -5f
-                R.id.button_right_top, R.id.button_right_bottom -> 5f
-                else -> 0f
-            }
-
-            val rotateY = ObjectAnimator.ofFloat(view, "rotationY", rotationY)
-            val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 0.98f)
-            val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 0.98f)
-            val rotateYBack = ObjectAnimator.ofFloat(view, "rotationY", 0f)
-            val scaleXBack = ObjectAnimator.ofFloat(view, "scaleX", 1.0f)
-            val scaleYBack = ObjectAnimator.ofFloat(view, "scaleY", 1.0f)
-
-            val pressSet = AnimatorSet().apply {
-                playTogether(rotateY, scaleX, scaleY)
-                duration = 10
-            }
-
-            val releaseSet = AnimatorSet().apply {
-                playTogether(rotateYBack, scaleXBack, scaleYBack)
-                duration = 10
-            }
-
-            // Iniciar la animación de presionar el botón
-            pressSet.start()
-
-            // Escuchar cuando la animación termina
-            pressSet.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    releaseSet.start()
-                }
-            })
-
-            // Durante y después de la animación, el botón seguirá siendo clicable
-            releaseSet.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    view.isClickable = true
-                }
-            })
-        }
-    }
-
-
-
-    private fun startBrake() {
-        brakeIndicator.visibility = View.VISIBLE
-        brakeIndicator.layoutParams.height = 0 // Reset the indicator height
-        Log.d("SteeringWheelActivity", "Brake Started")
-    }
-    private fun startAccelerate() {
-        accelerateIndicator.visibility = View.VISIBLE
-        accelerateIndicator.layoutParams.height = 0 // Reset the indicator height
-        Log.d("SteeringWheelActivity", "Accelerate Started")
-    }
-    private fun stopBrake() {
-        // Al soltar, se ocultan los indicadores y se envía el comando para detener el freno
-        brakeIndicator.visibility = View.GONE
-        brakeTopIndicator.visibility = View.GONE
-        queueCommand("C:0") // Enviar comando para detener completamente el freno
-        Log.d("SteeringWheelActivity", "Brake Stopped")
-    }
-
-    private fun stopAccelerate() {
-        // Al soltar, se ocultan los indicadores y se envía el comando para detener la aceleración
-        accelerateIndicator.visibility = View.GONE
-        accelerateTopIndicator.visibility = View.GONE
-        queueCommand("B:0") // Enviar comando para detener completamente la aceleración
-        Log.d("SteeringWheelActivity", "Accelerate Stopped")
-    }
-
-
-    private fun updateBrake(deltaY: Float) {
-        val progress = (deltaY * brakeSensitivity).toInt().coerceIn(0, 100)
-
-        val layoutParams = brakeIndicator.layoutParams
-        layoutParams.height = (resources.displayMetrics.heightPixels * (progress / 100.0)).toInt()
-        brakeIndicator.layoutParams = layoutParams
-        brakeIndicator.visibility = View.VISIBLE
-
-        if (progress >= 100) {
-            brakeTopIndicator.visibility = View.VISIBLE
-        } else {
-            brakeTopIndicator.visibility = View.GONE
-        }
-
-        queueCommand("C:$progress")
-        Log.d("SteeringWheelActivity", "Brake Updated with progress: $progress")
-    }
-
-    private fun updateAccelerate(deltaY: Float) {
-        val progress = (deltaY * accelerationSensitivity).toInt().coerceIn(0, 100)
-
-        val layoutParams = accelerateIndicator.layoutParams
-        layoutParams.height = (resources.displayMetrics.heightPixels * (progress / 100.0)).toInt()
-        accelerateIndicator.layoutParams = layoutParams
-        accelerateIndicator.visibility = View.VISIBLE
-
-        if (progress >= 100) {
-            accelerateTopIndicator.visibility = View.VISIBLE
-        } else {
-            accelerateTopIndicator.visibility = View.GONE
-        }
-
-        queueCommand("B:$progress")
-        Log.d("SteeringWheelActivity", "Accelerate Updated with progress: $progress")
-    }
-
-
+    // ─────────────────────────────────────────────────────────────────────────
+    // RED: COLA DE COMANDOS Y CONEXIÓN TCP
+    // ─────────────────────────────────────────────────────────────────────────
     private fun queueCommand(command: String) {
-        if (isConnected()) {
-            commandQueue.offer(command)
-            Log.d("MainActivity", "Command queued: $command")
-        } else {
-            Log.e("MainActivity", "Cannot queue command, socket is not connected")
-        }
+        if (isConnected()) commandQueue.offer(command)
     }
-
 
     private suspend fun processCommandQueue() {
         while (isConnected()) {
-            val command = commandQueue.poll()
-            if (command != null) {
+            val cmd = commandQueue.poll()
+            if (cmd != null) {
                 try {
-                    outputStream?.writeBytes("$command\n")
+                    outputStream?.writeBytes("$cmd\n")
                     outputStream?.flush()
-                    Log.d("MainActivity", "Sent command: $command")
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    Log.e("MainActivity", "Failed to send command", e)
                 }
             }
-            delay(1)  // Mantén un retraso mínimo para evitar saturación
+            delay(1)
         }
     }
 
     @Synchronized
     private fun establishConnection() {
-        if (isConnected()) {
-            Log.d("MainActivity", "Already connected, no need to reconnect.")
-            return
-        }
-
+        if (isConnected()) return
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Cerrar cualquier conexión existente antes de abrir una nueva
                 closeConnection()
-
-                // Intentar conectar
                 socket = Socket(serverAddress, serverPort).apply {
-                    tcpNoDelay = true  // Disable Nagle's algorithm for low latency
-                    keepAlive = true   // Keep connection alive
-                    soTimeout = 5000   // 5 second socket timeout
-                    sendBufferSize = 65536  // Increase send buffer
-                    receiveBufferSize = 65536  // Increase receive buffer
+                    tcpNoDelay      = true
+                    keepAlive       = true
+                    soTimeout       = 5000
+                    sendBufferSize    = 65536
+                    receiveBufferSize = 65536
                 }
                 outputStream = DataOutputStream(socket?.getOutputStream())
-                Log.d("MainActivity", "Connection established to $serverAddress:$serverPort via USB Tethering")
 
-                // Iniciar el procesamiento de la cola de comandos
+                setConnectionState(true, serverAddress)
+                runOnUiThread {
+                    Toast.makeText(this@SteeringWheelActivity, "Connected to $serverAddress", Toast.LENGTH_SHORT).show()
+                }
+
+                // Iniciar receptor TCP: lee los mensajes T:speed:gear:rpm del servidor
+                startTcpReceiver()
+
                 processCommandQueue()
-
             } catch (e: IOException) {
+                setConnectionState(false, null)
                 handleConnectionError(e)
             }
         }
     }
+
     private fun handleConnectionError(e: IOException) {
         e.printStackTrace()
-        Log.e("MainActivity", "Failed to establish connection", e)
         runOnUiThread {
-            Toast.makeText(this@SteeringWheelActivity, "Failed to connect to server", Toast.LENGTH_SHORT).show()
-            showConnectionOptions()  // Mostrar opciones si no se puede conectar
+            Toast.makeText(this, "Connection Failed. Is the PC Server running?", Toast.LENGTH_LONG).show()
+            showConnectionOptions()
         }
     }
 
     private fun closeConnection() {
         try {
-            outputStream?.flush()      // Flush remaining data
-            socket?.shutdownOutput()   // Signal no more data will be sent
-            outputStream?.close()       // Close the output stream
-            socket?.shutdownInput()     // Signal no more data will be received
-            socket?.close()             // Close the socket
-            Log.d("MainActivity", "Connection closed")
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e("MainActivity", "Failed to close connection", e)
+            outputStream?.flush()
+            socket?.shutdownOutput()
+            outputStream?.close()
+            socket?.shutdownInput()
+            socket?.close()
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("MainActivity", "Unexpected error closing connection", e)
         } finally {
             socket = null
             outputStream = null
         }
     }
 
-    private fun isConnected(): Boolean {
-        return socket?.isConnected == true && !socket!!.isClosed
-    }
+    private fun isConnected() = socket?.isConnected == true && socket?.isClosed == false
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // DESCUBRIMIENTO DE SERVIDOR
+    // ─────────────────────────────────────────────────────────────────────────
     private fun discoverServerViaUDP() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val udpSocket = DatagramSocket()
-                udpSocket.broadcast = true
-
-                val message = "DISCOVER_SERVER".toByteArray()
-                val packet = DatagramPacket(
-                    message,
-                    message.size,
-                    InetAddress.getByName("255.255.255.255"),
-                    serverPort
-                )
-                udpSocket.send(packet)
-
-                val buffer = ByteArray(1024)
-                val responsePacket = DatagramPacket(buffer, buffer.size)
-                udpSocket.soTimeout = 5000  // 5 segundos de tiempo de espera para la respuesta
-
+                val udp = DatagramSocket()
+                udp.broadcast = true
+                val msg = "DISCOVER_SERVER".toByteArray()
+                udp.send(DatagramPacket(msg, msg.size, InetAddress.getByName("255.255.255.255"), serverPort))
+                val resp = DatagramPacket(ByteArray(1024), 1024)
+                udp.soTimeout = 5000
                 try {
-                    udpSocket.receive(responsePacket)
-                    val response = String(responsePacket.data, 0, responsePacket.length)
-                    val (serverIp, port) = response.split(":")
-                    serverAddress = serverIp
-                    udpSocket.close()
-
-                    Log.d("SteeringWheelActivity", "Server found at IP: $serverAddress")
-
-                    // Establecer la conexión con el servidor utilizando la IP descubierta y el puerto especificado
+                    udp.receive(resp)
+                    serverAddress = String(resp.data, 0, resp.length).split(":")[0]
+                    udp.close()
                     establishConnection()
-
                 } catch (e: SocketTimeoutException) {
                     runOnUiThread {
-                        Toast.makeText(this@SteeringWheelActivity, "Server discovery timed out", Toast.LENGTH_SHORT).show()
-                        showConnectionOptions()  // Mostrar opciones si no se encuentra el servidor
+                        Toast.makeText(this@SteeringWheelActivity, "PC Server not found.", Toast.LENGTH_SHORT).show()
+                        showConnectionOptions()
                     }
                 }
-
             } catch (e: IOException) {
                 e.printStackTrace()
-                Log.e("MainActivity", "Failed to discover server via UDP", e)
                 runOnUiThread {
-                    Toast.makeText(this@SteeringWheelActivity, "Error in UDP discovery", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SteeringWheelActivity, "Network error. Is WiFi connected?", Toast.LENGTH_SHORT).show()
                     showConnectionOptions()
                 }
             }
         }
     }
+
     private fun discoverServerViaUsbTethering() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Obtener la IP de USB Tethering
                 val usbIp = getUsbTetheringIp()
                 if (usbIp != null) {
-                    val subnet = usbIp.substringBeforeLast(".")
-                    val broadcastAddress = "$subnet.255"  // Direccion de broadcast para el rango
-
-                    val udpSocket = DatagramSocket()
-                    udpSocket.broadcast = true
-
-                    val message = "DISCOVER_SERVER".toByteArray()
-                    val packet = DatagramPacket(
-                        message,
-                        message.size,
-                        InetAddress.getByName(broadcastAddress),
-                        serverPort
-                    )
-                    udpSocket.send(packet)
-
-                    val buffer = ByteArray(1024)
-                    val responsePacket = DatagramPacket(buffer, buffer.size)
-                    udpSocket.soTimeout = 3000  // 3 segundos de tiempo de espera para la respuesta
-
+                    val broadcast = "${usbIp.substringBeforeLast(".")}.255"
+                    val udp = DatagramSocket()
+                    udp.broadcast = true
+                    val msg = "DISCOVER_SERVER".toByteArray()
+                    udp.send(DatagramPacket(msg, msg.size, InetAddress.getByName(broadcast), serverPort))
+                    val resp = DatagramPacket(ByteArray(1024), 1024)
+                    udp.soTimeout = 3000
                     try {
-                        udpSocket.receive(responsePacket)
-                        val response = String(responsePacket.data, 0, responsePacket.length)
-                        val (serverIp, port) = response.split(":")
-                        serverAddress = serverIp
-                        udpSocket.close()
-
-                        Log.d("SteeringWheelActivity", "Server found at IP: $serverAddress")
-
-                        // Establecer la conexión con el servidor utilizando la IP descubierta y el puerto especificado
+                        udp.receive(resp)
+                        serverAddress = String(resp.data, 0, resp.length).split(":")[0]
+                        udp.close()
                         establishConnection()
-
                     } catch (e: SocketTimeoutException) {
                         runOnUiThread {
-                            Toast.makeText(this@SteeringWheelActivity, "Server discovery timed out", Toast.LENGTH_SHORT).show()
-                            showConnectionOptions()  // Mostrar opciones si no se encuentra el servidor
+                            Toast.makeText(this@SteeringWheelActivity, "PC Server not found via USB.", Toast.LENGTH_SHORT).show()
+                            showConnectionOptions()
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@SteeringWheelActivity, "No USB Tethering IP found", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SteeringWheelActivity, "USB Tethering unavailable.", Toast.LENGTH_SHORT).show()
                     }
-                    Log.e("MainActivity", "No USB Tethering IP found")
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
-                Log.e("MainActivity", "Failed to discover server via UDP over USB tethering", e)
                 runOnUiThread {
-                    Toast.makeText(this@SteeringWheelActivity, "Error in UDP discovery", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SteeringWheelActivity, "USB Network error.", Toast.LENGTH_SHORT).show()
                     showConnectionOptions()
                 }
             }
         }
     }
 
-    private var isDialogShowing = false
+    private fun getUsbTetheringIp(): String? = try {
+        NetworkInterface.getNetworkInterfaces().toList()
+            .firstOrNull { it.name.contains("rndis") || it.name.contains("usb") }
+            ?.inetAddresses?.toList()
+            ?.firstOrNull { !it.isLoopbackAddress && it is Inet4Address }
+            ?.hostAddress
+    } catch (e: Exception) { null }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // DIÁLOGOS DE CONEXIÓN
+    // ─────────────────────────────────────────────────────────────────────────
     private fun showConnectionOptions() {
-        // Asegúrate de que el diálogo no se muestra dos veces al evitar múltiples llamadas
-        if (isDialogShowing) {
-            return
-        }
-
-        val options = arrayOf("WiFi", "USB Tethering", "Manual Input IP")
-        val builder = AlertDialog.Builder(this, R.style.TokyoNightDialogTheme)
-        builder.setTitle("Choose Connection Mode")
-        builder.setItems(options) { _, which ->
+        if (isDialogShowing) return
+        val options = arrayOf("WiFi (Auto-detect)", "USB Tethering (Auto-detect)", "Manual IP Address")
+        MaterialAlertDialogBuilder(this, R.style.TokyoNightDialogTheme)
+            .setTitle("Connect to PC Server")
+            .setAdapter(ArrayAdapter(this, R.layout.dialog_list_item, options)) { _, which ->
+                isDialogShowing = false
             when (which) {
-                0 -> {
-                    discoverServerViaUDP()  // Opción para WiFi
-                    isDialogShowing = false
-                }
-                1 -> {
-                    discoverServerViaUsbTethering()  // Opción para USB Tethering Automático
-                    isDialogShowing = false
-                }
-                2 -> {
-                    showManualIpInputDialog()  // Opción para IP manual
-                    isDialogShowing = false
+                    0 -> { Toast.makeText(this, "Searching via WiFi…", Toast.LENGTH_SHORT).show(); discoverServerViaUDP() }
+                    1 -> { Toast.makeText(this, "Searching via USB…", Toast.LENGTH_SHORT).show(); discoverServerViaUsbTethering() }
+                    2 -> showManualIpInputDialog()
                 }
             }
-        }
-
-        builder.setOnDismissListener {
-            isDialogShowing = false  // Resetear el estado cuando se cierra el diálogo
-        }
-
-        val dialog = builder.create()
-        dialog.show()
-
-        // Variable de estado para controlar si el diálogo está mostrando o no
-        isDialogShowing = true
+            .setOnDismissListener { isDialogShowing = false }
+            .create()
+            .also { it.show(); isDialogShowing = true }
     }
-
 
     private fun showManualIpInputDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Enter Server IP")
-
-        val input = EditText(this)
-        input.inputType = InputType.TYPE_CLASS_TEXT
-        builder.setView(input)
-
-        builder.setPositiveButton("Connect") { _, _ ->
-            val enteredIp = input.text.toString()
-            if (enteredIp.isNotEmpty()) {
-                serverAddress = enteredIp
-                establishConnection()
-            } else {
-                Toast.makeText(this, "IP address cannot be empty", Toast.LENGTH_SHORT).show()
-            }
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            setTextColor(ContextCompat.getColor(this@SteeringWheelActivity, android.R.color.white))
         }
-        builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
-
-        builder.show()
+        MaterialAlertDialogBuilder(this, R.style.TokyoNightDialogTheme)
+            .setTitle("Enter PC IP Address")
+            .setMessage("Enter the IP address shown in the Python Server app:")
+            .setView(input)
+            .setPositiveButton("Connect") { _, _ ->
+                val ip = input.text.toString()
+                if (ip.isNotEmpty()) { serverAddress = ip; establishConnection() }
+                else Toast.makeText(this, "Please enter a valid IP address", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel") { d, _ -> d.cancel() }
+            .show()
     }
-    private fun getUsbTetheringIp(): String? {
-        try {
-            val interfaces = NetworkInterface.getNetworkInterfaces().toList()
-            for (networkInterface in interfaces) {
-                if (networkInterface.name.contains("rndis") || networkInterface.name.contains("usb")) {
-                    for (address in networkInterface.inetAddresses) {
-                        if (!address.isLoopbackAddress && address is Inet4Address) {
-                            Log.d(
-                                "NetworkInterface",
-                                "Found USB tethering interface: ${networkInterface.name} with IP: ${address.hostAddress}"
-                            )
-                            return address.hostAddress
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("getUsbTetheringIp", "Error retrieving USB Tethering IP", e)
-        }
-        return null
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CICLO DE VIDA
+    // ─────────────────────────────────────────────────────────────────────────
+    override fun onResume() {
+        super.onResume()
+        val prefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
+        maxSteeringAngle        = prefs.getInt("steering_angle", 90).toFloat()
+        accelerationSensitivity = prefs.getFloat(SettingsActivity.PREF_ACCELERATOR_SENSITIVITY, SettingsActivity.DEFAULT_ACCELERATOR_SENSITIVITY)
+        brakeSensitivity        = prefs.getFloat(SettingsActivity.PREF_BRAKE_SENSITIVITY, SettingsActivity.DEFAULT_BRAKE_SENSITIVITY)
+        clickTimeLimit          = prefs.getFloat(SettingsActivity.PREF_CLICK_TIME_LIMIT, SettingsActivity.DEFAULT_CLICK_TIME_LIMIT)
+        swipeThresholdInPx      = prefs.getFloat(SettingsActivity.PREF_SWIPE_THRESHOLD, SettingsActivity.DEFAULT_SWIPE_THRESHOLD) *
+                                  resources.displayMetrics.xdpi / 25.4f
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sensorManager.unregisterListener(this)
+        soundPool.release()
+        stopAcTelemetry()
+        closeConnection()
     }
 }

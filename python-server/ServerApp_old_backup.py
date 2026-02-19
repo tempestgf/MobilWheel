@@ -13,14 +13,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', stre
 
 import xbox as server_module  # Cambia esto por el nombre real del archivo del servidor
 
-# Import AC Telemetry
-try:
-    from ac_telemetry import ACTelemetryReader, ACPhysics
-    AC_TELEMETRY_AVAILABLE = True
-except ImportError:
-    AC_TELEMETRY_AVAILABLE = False
-    logging.warning("AC Telemetry module not available")
-
 class ServerApp:
     def __init__(self, root):
         # Base path para la aplicación empaquetada o no empaquetada
@@ -28,7 +20,7 @@ class ServerApp:
 
         self.root = root
         self.root.title("Mobile Wheel")
-        self.root.geometry("600x750")  # Establecer el tamaño de la ventana (aumentado para telemetría)
+        self.root.geometry("600x600")  # Establecer el tamaño de la ventana
         self.root.resizable(False, False)  # Evitar redimensionamiento
 
         # Cargar el ícono en formato .ico utilizando la ruta correcta
@@ -67,13 +59,9 @@ class ServerApp:
         self.stop_button = ttk.Button(self.control_frame, text="Stop Server", command=self.stop_server, state=tk.DISABLED)
         self.stop_button.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
 
-        # Frame para telemetría de Assetto Corsa
-        if AC_TELEMETRY_AVAILABLE:
-            self.create_ac_telemetry_ui()
-        
         # Frame para las barras de progreso
         self.progress_frame = ttk.LabelFrame(root, text="Axis", padding=(20, 10))
-        self.progress_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.progress_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         # Barra de progreso para acelerar (solo color de texto Tokyo Night)
         self.accelerate_label = ttk.Label(self.progress_frame, text="Accelerate:", style="TokyoNight.TLabel")
@@ -95,7 +83,7 @@ class ServerApp:
 
         # Frame para los checkbuttons (solo color de texto Tokyo Night)
         self.button_frame = ttk.LabelFrame(root, text="Button States", padding=(20, 10))
-        self.button_frame.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        self.button_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
         self.button_states = {
             'left_top': tk.BooleanVar(),
@@ -121,27 +109,15 @@ class ServerApp:
 
         # Área de texto para mostrar los logs
         self.log_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=60, height=10, font=("Courier New", 10), borderwidth=0, highlightthickness=0, bg="#24283b", fg="#a9b1d6", insertbackground="#c0caf5")
-        self.log_area.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.log_area.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
         self.log_area.insert(tk.END, "Logs will appear here...\n")
         self.log_area.configure(state='disabled')
 
         self.server_thread = None
         self.server_running = threading.Event()
 
-        # AC Telemetry
-        self.ac_telemetry_reader = None
-        self.ac_connected = False
-        self.ac_auto_detect_active = False
-
-        # Protocol para cerrar ventana
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-
         # Inicia la actualización de logs
         self.update_logs()
-        
-        # Iniciar auto-detección de AC si está disponible
-        if AC_TELEMETRY_AVAILABLE:
-            self.start_ac_auto_detect()
 
     def start_server(self):
         if not self.server_running.is_set():
@@ -204,210 +180,6 @@ class ServerApp:
         if button_name in self.checkbuttons:
             self.button_states[button_name].set(False)  # Cambia el estado a no seleccionado
             self.root.update_idletasks()  # Forza la actualización de la interfaz
-
-    def on_closing(self):
-        """Manejar el cierre de la aplicación"""
-        # Detener servidor si está corriendo
-        if self.server_running.is_set():
-            self.stop_server()
-        
-        # Detener auto-detección
-        self.ac_auto_detect_active = False
-        
-        # Desconectar telemetría AC si está conectada
-        if AC_TELEMETRY_AVAILABLE and self.ac_connected:
-            self.disconnect_ac_telemetry()
-        
-        self.root.destroy()
-
-    # ========== AC TELEMETRY METHODS ==========
-    
-    def start_ac_auto_detect(self):
-        """Iniciar detección automática de Assetto Corsa"""
-        self.ac_auto_detect_active = True
-        self.ac_status_label.configure(
-            text="● Searching for AC...",
-            foreground="#e0af68"  # Yellow/Orange
-        )
-        self.try_ac_auto_connect()
-    
-    def try_ac_auto_connect(self):
-        """Intentar conectar a AC automáticamente"""
-        if not self.ac_auto_detect_active:
-            return
-        
-        # Si ya está conectado, no hacer nada
-        if self.ac_connected:
-            return
-        
-        # Intentar conectar silenciosamente
-        try:
-            if not self.ac_telemetry_reader:
-                self.ac_telemetry_reader = ACTelemetryReader()
-            
-            # Intento silencioso de conexión
-            if self.ac_telemetry_reader.connect():
-                # Éxito! Iniciar polling
-                if self.ac_telemetry_reader.start_polling(
-                    callback=self.on_ac_telemetry_update,
-                    poll_rate=0.05
-                ):
-                    self.ac_connected = True
-                    self.ac_auto_detect_active = False  # Detener búsqueda
-                    self.ac_disconnect_button.configure(state=tk.NORMAL)
-                    self.ac_status_label.configure(
-                        text="● Connected (auto)",
-                        foreground="#9ece6a"  # Green
-                    )
-                    logging.info("Auto-connected to AC telemetry")
-                    return
-                else:
-                    # Falló el polling, desconectar
-                    self.ac_telemetry_reader.disconnect()
-            
-        except Exception:
-            # Falló silenciosamente, continuar buscando
-            pass
-        
-        # Reintentar en 2 segundos
-        if self.ac_auto_detect_active:
-            self.root.after(2000, self.try_ac_auto_connect)
-    
-    def create_ac_telemetry_ui(self):
-        """Crear UI para telemetría de Assetto Corsa"""
-        self.ac_frame = ttk.LabelFrame(self.root, text="Assetto Corsa Telemetry", padding=(20, 10))
-        self.ac_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-        
-        # Botones de control AC
-        ac_control_frame = ttk.Frame(self.ac_frame)
-        ac_control_frame.grid(row=0, column=0, columnspan=4, pady=(0, 10), sticky="ew")
-        
-        self.ac_disconnect_button = ttk.Button(
-            ac_control_frame, 
-            text="Disconnect", 
-            command=self.disconnect_ac_telemetry,
-            state=tk.DISABLED
-        )
-        self.ac_disconnect_button.grid(row=0, column=0, padx=5, sticky="ew")
-        
-        # Status label
-        self.ac_status_label = ttk.Label(
-            ac_control_frame, 
-            text="● Searching for AC...", 
-            style="TokyoNight.TLabel",
-            foreground="#e0af68"  # Yellow/Orange
-        )
-        self.ac_status_label.grid(row=0, column=1, padx=10, sticky="w")
-        
-        # Data display - Row 1: Speed and Gear
-        self.ac_speed_label = ttk.Label(
-            self.ac_frame,
-            text="Speed: --- km/h",
-            style="TokyoNight.TLabel",
-            font=('Segoe UI', 12, 'bold')
-        )
-        self.ac_speed_label.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="w")
-        
-        self.ac_gear_label = ttk.Label(
-            self.ac_frame,
-            text="Gear: -",
-            style="TokyoNight.TLabel",
-            font=('Segoe UI', 12, 'bold')
-        )
-        self.ac_gear_label.grid(row=1, column=2, columnspan=2, padx=10, pady=5, sticky="w")
-        
-        # Row 2: RPM bar
-        ttk.Label(
-            self.ac_frame,
-            text="RPM:",
-            style="TokyoNight.TLabel"
-        ).grid(row=2, column=0, sticky="w", padx=10)
-        
-        self.ac_rpm_bar = ttk.Progressbar(
-            self.ac_frame,
-            orient="horizontal",
-            length=250,
-            mode="determinate",
-            maximum=8000  # Ajustar según el coche
-        )
-        self.ac_rpm_bar.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky="ew")
-        
-        self.ac_rpm_label = ttk.Label(
-            self.ac_frame,
-            text="0",
-            style="TokyoNight.TLabel",
-            font=('Segoe UI', 10)
-        )
-        self.ac_rpm_label.grid(row=2, column=3, padx=5, sticky="w")
-        
-        # Row 3: Gas and Brake
-        self.ac_gas_label = ttk.Label(
-            self.ac_frame,
-            text="Gas: 0%",
-            style="TokyoNight.TLabel"
-        )
-        self.ac_gas_label.grid(row=3, column=0, columnspan=2, padx=10, pady=2, sticky="w")
-        
-        self.ac_brake_label = ttk.Label(
-            self.ac_frame,
-            text="Brake: 0%",
-            style="TokyoNight.TLabel"
-        )
-        self.ac_brake_label.grid(row=3, column=2, columnspan=2, padx=10, pady=2, sticky="w")
-    
-
-    
-    def disconnect_ac_telemetry(self):
-        """Desconectar de la telemetría de AC y reiniciar búsqueda"""
-        if self.ac_telemetry_reader:
-            self.ac_telemetry_reader.stop_polling()
-            self.ac_telemetry_reader = None
-        
-        self.ac_connected = False
-        self.ac_disconnect_button.configure(state=tk.DISABLED)
-        
-        # Reset displays
-        self.ac_speed_label.configure(text="Speed: --- km/h")
-        self.ac_gear_label.configure(text="Gear: -")
-        self.ac_rpm_bar['value'] = 0
-        self.ac_rpm_label.configure(text="0")
-        self.ac_gas_label.configure(text="Gas: 0%")
-        self.ac_brake_label.configure(text="Brake: 0%")
-        
-        logging.info("Disconnected from AC telemetry")
-        
-        # Reiniciar auto-detección
-        self.start_ac_auto_detect()
-    
-    def on_ac_telemetry_update(self, data: ACPhysics):
-        """Callback cuando hay nuevos datos de telemetría"""
-        def update():
-            try:
-                # Update speed
-                self.ac_speed_label.configure(text=f"Speed: {data.speed_kmh:.1f} km/h")
-                
-                # Update gear
-                if data.gear > 0:
-                    gear_text = str(data.gear)
-                elif data.gear == 0:
-                    gear_text = "N"
-                else:
-                    gear_text = "R"
-                self.ac_gear_label.configure(text=f"Gear: {gear_text}")
-                
-                # Update RPM
-                self.ac_rpm_bar['value'] = min(data.rpms, 8000)
-                self.ac_rpm_label.configure(text=str(data.rpms))
-                
-                # Update gas/brake
-                self.ac_gas_label.configure(text=f"Gas: {data.gas*100:.0f}%")
-                self.ac_brake_label.configure(text=f"Brake: {data.brake*100:.0f}%")
-                
-            except Exception as e:
-                logging.error(f"Error updating AC telemetry UI: {e}")
-        
-        # Schedule on main thread
-        self.root.after(0, update)
 
 # Configuración de la ventana principal
 if __name__ == "__main__":

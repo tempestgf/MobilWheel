@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Relleno de gas: verde sólido arriba, desvanece hacia abajo (efecto "cae desde la cima") -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="270"
+        android:startColor="#EE9ece6a"
+        android:endColor="#229ece6a" />
+</shape>

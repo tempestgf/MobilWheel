@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#80FFFFFF">
+    <item>
+        <layer-list>
+            <!-- Outer Glow Shadow (Simulated) -->
+            <item android:bottom="4dp" android:right="4dp">
+                <shape android:shape="oval">
+                    <solid android:color="#40000000"/>
+                </shape>
+            </item>
+            <!-- Main Circle -->
+            <item android:bottom="4dp" android:right="4dp" android:top="4dp" android:left="4dp">
+                <shape android:shape="oval">
+                    <solid android:color="@color/geneon_orange"/>
+                    <stroke android:width="4dp" android:color="#CCFF6D00"/> 
+                </shape>
+            </item>
+            <!-- Inner shine -->
+            <item android:top="8dp" android:left="8dp" android:right="8dp" android:bottom="8dp">
+                <shape android:shape="oval">
+                    <stroke android:width="2dp" android:color="#40FFFFFF"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>
