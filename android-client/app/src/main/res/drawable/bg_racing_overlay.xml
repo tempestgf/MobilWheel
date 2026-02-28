@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1920dp"
+    android:height="1080dp"
+    android:viewportWidth="1920"
+    android:viewportHeight="1080">
+
+    <!-- Acento inferior naranja (estilo difusor/alerón) -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M0,1060 h1920 v20 h-1920 z" />
+        
+    <!-- Línea blanca fina sobre el acento naranja -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.5"
+        android:pathData="M0,1055 h1920 v2 h-1920 z" />
+
+    <!-- Elemento decorativo superior izquierdo (estilo HUD) -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M0,0 h150 l-30,30 h-120 z" />
+        
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.3"
+        android:pathData="M160,0 h40 l-30,30 h-40 z" />
+
+</vector>

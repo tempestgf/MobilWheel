@@ -4,44 +4,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/geneon_background"
-    android:padding="24dp">
+    android:background="#000000">
 
-    <!-- Racing Stripe Decoration -->
-    <View
-        android:id="@+id/stripe_red"
-        android:layout_width="8dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="8dp"
-        android:background="@color/geneon_orange"
-        android:rotation="15"
-        android:transformPivotX="100dp"
+    <!-- Video Background -->
+    <VideoView
+        android:id="@+id/video_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" 
-        android:alpha="0.8"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Dark Overlay to make text readable -->
     <View
-        android:id="@+id/stripe_white"
-        android:layout_width="4dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="4dp"
-        android:background="@color/geneon_white"
-        android:rotation="15"
-        android:transformPivotX="100dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B3000000"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/stripe_red"
-        app:layout_constraintTop_toTopOf="parent" 
-        android:alpha="0.5"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Separator Line (Vertical) -->
+    <!-- Racing Overlay -->
     <View
-        android:id="@+id/separator_line"
-        android:layout_width="2dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
-        android:background="@color/geneon_orange"
-        app:layout_constraintBottom_toTopOf="@+id/footer_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_racing_overlay"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -60,9 +50,9 @@
 
         <ImageView
             android:id="@+id/app_logo"
-            android:layout_width="220dp"
-            android:layout_height="220dp"
-            android:layout_marginBottom="24dp"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/app_name"
             android:scaleType="fitCenter"
@@ -73,35 +63,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
-            android:letterSpacing="-0.02"
+            android:letterSpacing="0.02"
             android:text="@string/main_menu_title"
             android:textAllCaps="true"
             android:textColor="@color/geneon_white"
-            android:textSize="32sp"
+            android:textSize="42sp"
             android:textStyle="italic" 
-            android:shadowColor="@color/geneon_orange"
-            android:shadowDx="4"
-            android:shadowDy="4"
-            android:shadowRadius="8"/>
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="4"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:alpha="0.8"
+            android:layout_marginTop="4dp"
+            android:alpha="0.9"
             android:fontFamily="sans-serif-condensed"
             android:text="@string/main_menu_subtitle"
-            android:textColor="@color/geneon_white"
-            android:textSize="14sp"
-            android:letterSpacing="0.2"
-            android:textAllCaps="true" />
+            android:textColor="@color/geneon_orange"
+            android:textSize="18sp"
+            android:letterSpacing="0.3"
+            android:textAllCaps="true"
+            android:textStyle="bold" />
             
-        <View
-            android:layout_width="100dp"
-            android:layout_height="2dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/geneon_orange"/>
-
     </LinearLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -124,25 +109,24 @@
 
         <Button
             android:id="@+id/button_start"
-            android:layout_width="240dp"
-            android:layout_height="56dp"
-            android:layout_marginBottom="20dp"
+            android:layout_width="260dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="24dp"
             android:background="@drawable/geneon_button"
             app:backgroundTint="@null"
-            android:elevation="8dp"
+            android:elevation="12dp"
             android:fontFamily="sans-serif-black"
             android:text="@string/button_start_engine"
             android:textAllCaps="true"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="22sp"
             android:textStyle="italic"
             android:letterSpacing="0.05"
-            android:stateListAnimator="@null"
-            app:iconTint="@color/white" />
+            android:stateListAnimator="@null" />
 
         <Button
             android:id="@+id/button_settings"
-            android:layout_width="240dp"
+            android:layout_width="260dp"
             android:layout_height="56dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/geneon_button_secondary"
@@ -150,28 +134,28 @@
             android:elevation="0dp"
             android:fontFamily="sans-serif-condensed"
             android:textStyle="bold"
-            android:letterSpacing="0.05"
+            android:letterSpacing="0.1"
             android:stateListAnimator="@null"
             android:text="@string/button_settings"
             android:textAllCaps="true"
             android:textColor="@color/geneon_white"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/button_about"
-            android:layout_width="240dp"
+            android:layout_width="260dp"
             android:layout_height="56dp"
             android:background="@drawable/geneon_button_secondary"
             app:backgroundTint="@null"
             android:elevation="0dp"
             android:fontFamily="sans-serif-condensed"
             android:textStyle="bold"
-            android:letterSpacing="0.05"
+            android:letterSpacing="0.1"
             android:stateListAnimator="@null"
             android:text="@string/button_about"
             android:textAllCaps="true"
             android:textColor="@color/geneon_white"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
     </LinearLayout>
 
     <!-- Footer Copyright -->
@@ -179,14 +163,15 @@
         android:id="@+id/footer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:alpha="0.4"
-        android:fontFamily="sans-serif-medium"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
+        android:alpha="0.5"
+        android:fontFamily="@font/museo_moderno"
         android:text="© 2024 Geneon // RACING MOD"
-        android:textColor="@color/racing_silver"
-        android:textSize="10sp"
+        android:textColor="@color/geneon_white"
+        android:textSize="12sp"
         android:letterSpacing="0.1"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

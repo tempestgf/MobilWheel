@@ -22,9 +22,9 @@
         android:screenOrientation="landscape"
         tools:ignore="DiscouragedApi">
 
-        <!-- MainActivity como LAUNCHER -->
+        <!-- SplashActivity como LAUNCHER -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -33,9 +33,9 @@
             </intent-filter>
         </activity>
 
-        <!-- SplashActivity eliminada/oculta -->
+        <!-- MainActivity -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".MainActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
 

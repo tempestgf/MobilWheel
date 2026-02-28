@@ -2,16 +2,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1b26"
-    android:gravity="center">
+    android:background="#1a1b26">
 
     <ImageView
         android:id="@+id/splash_logo"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:background="#1a1b26"
-        android:padding="16dp"
-        android:scaleType="centerInside"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_centerInParent="true"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
         android:src="@drawable/app_logo"
         android:contentDescription="@string/app_name" />
 </RelativeLayout>

@@ -204,6 +204,7 @@
 
     <!-- Resplandor ambiental naranja en el centro -->
     <View
+        android:id="@+id/cockpitGlow"
         android:layout_width="280dp"
         android:layout_height="280dp"
         android:layout_centerInParent="true"
@@ -214,6 +215,7 @@
 
     <!-- Arco RPM exterior (decorativo) -->
     <View
+        android:id="@+id/cockpitArcOuter"
         android:layout_width="220dp"
         android:layout_height="220dp"
         android:layout_centerInParent="true"
@@ -224,6 +226,7 @@
 
     <!-- Arco RPM interior (decorativo) -->
     <View
+        android:id="@+id/cockpitArcInner"
         android:layout_width="178dp"
         android:layout_height="178dp"
         android:layout_centerInParent="true"
@@ -234,6 +237,7 @@
 
     <!-- Línea de horizonte artificial -->
     <View
+        android:id="@+id/horizonLine"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_centerVertical="true"
@@ -244,22 +248,25 @@
 
     <!-- Bloque central: marcha + dots de RPM -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/centerGearBlock"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
         android:layout_centerInParent="true"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
+        android:gravity="center"
         android:clickable="false"
         android:focusable="false"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:elevation="7dp">
 
         <!-- Indicador GEAR (etiqueta + número grande) -->
         <LinearLayout
             android:id="@+id/gearContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center_horizontal"
+            android:gravity="center"
             android:clickable="false"
             android:focusable="false">
 
@@ -410,7 +417,7 @@
     </LinearLayout>
 
     <!-- ============================================================ -->
-    <!--   BARRA SUPERIOR: ESTADO DE CONEXIÓN                         -->
+    <!--   BARRA SUPERIOR: ESTADO DE CONEXIÓN + RPM CENTRADO          -->
     <!-- ============================================================ -->
     <LinearLayout
         android:id="@+id/topStatusBar"
@@ -425,44 +432,54 @@
         android:elevation="10dp"
         android:background="#CC000005">
 
-        <!-- Punto indicador de estado -->
-        <View
-            android:id="@+id/connectionDot"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="@drawable/cockpit_dot_green" />
-
-        <!-- Etiqueta de estado de conexión -->
-        <TextView
-            android:id="@+id/connectionLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OFFLINE"
-            android:textColor="#FFFF6B6B"
-            android:textSize="9sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"
-            android:fontFamily="monospace"
-            android:layout_marginStart="7dp" />
-
-        <!-- Dirección IP -->
-        <TextView
-            android:id="@+id/ipAddressDisplay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="192.168.1.42"
-            android:textColor="#44FFFFFF"
-            android:textSize="10sp"
-            android:fontFamily="monospace"
-            android:layout_marginStart="16dp" />
-
-        <!-- Indicador de RPM con dots -->
+        <!-- ═══ SECCIÓN IZQUIERDA: Conexión + IP ═══ -->
         <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Punto indicador de estado -->
+            <View
+                android:id="@+id/connectionDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/cockpit_dot_green" />
+
+            <!-- Etiqueta de estado de conexión -->
+            <TextView
+                android:id="@+id/connectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFFLINE"
+                android:textColor="#FFFF6B6B"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="monospace"
+                android:layout_marginStart="7dp" />
+
+            <!-- Dirección IP -->
+            <TextView
+                android:id="@+id/ipAddressDisplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="192.168.1.42"
+                android:textColor="#44FFFFFF"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+
+        <!-- ═══ SECCIÓN CENTRAL: RPM INDICATOR (centrado sobre el gear) ═══ -->
+        <LinearLayout
+            android:id="@+id/rpmContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center"
-            android:layout_marginStart="16dp">
+            android:gravity="center_horizontal"
+            android:layout_marginHorizontal="12dp">
 
             <!-- Texto RPM -->
             <TextView
@@ -471,72 +488,82 @@
                 android:layout_height="wrap_content"
                 android:text="0 RPM"
                 android:textColor="#FFff9e64"
-                android:textSize="9sp"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05"
                 android:fontFamily="monospace"
-                android:layout_marginBottom="2dp" />
+                android:layout_marginBottom="3dp" />
 
-            <!-- Dots de RPM: 10 dots total (4 verde, 3 amarillo, 3 rojo) -->
+            <!-- 15 Dots de RPM: 5 verde, 5 amarillo, 5 rojo -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center">
 
-                <!-- Verde (1-4) -->
-                <View android:id="@+id/rpmDot1"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot2"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot3"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot4"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="4dp"/>
+                <!-- Verde (1-5) -->
+                <View android:id="@+id/rpmDot1"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot2"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot3"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot4"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot5"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_green"  android:alpha="0.15" android:layout_marginEnd="5dp"/>
 
-                <!-- Amarillo (5-7) -->
-                <View android:id="@+id/rpmDot5"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot6"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot7"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="4dp"/>
+                <!-- Amarillo (6-10) -->
+                <View android:id="@+id/rpmDot6"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot7"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot8"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot9"  android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot10" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_yellow" android:alpha="0.15" android:layout_marginEnd="5dp"/>
 
-                <!-- Rojo (8-10) - ZONA DE CAMBIO -->
-                <View android:id="@+id/rpmDot8"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot9"  android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
-                <View android:id="@+id/rpmDot10" android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15"/>
+                <!-- Rojo (11-15) - ZONA DE CAMBIO -->
+                <View android:id="@+id/rpmDot11" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot12" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot13" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot14" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15" android:layout_marginEnd="2dp"/>
+                <View android:id="@+id/rpmDot15" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/cockpit_dot_red"    android:alpha="0.15"/>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Separador flexible -->
-        <Space
+        <!-- ═══ SECCIÓN DERECHA: Iconos de estado ═══ -->
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <!-- Iconos de estado (texto monoespaciado estilo HUD) -->
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="WiFi"
-            android:textColor="#55FFFFFF"
-            android:textSize="9sp"
-            android:letterSpacing="0.05"
-            android:fontFamily="monospace" />
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical|end">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BAT"
-            android:textColor="#55FFFFFF"
-            android:textSize="9sp"
-            android:letterSpacing="0.05"
-            android:fontFamily="monospace"
-            android:layout_marginStart="14dp" />
+            <TextView
+                android:id="@+id/wifiStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PING: --"
+                android:textColor="#55FFFFFF"
+                android:textSize="9sp"
+                android:letterSpacing="0.05"
+                android:fontFamily="monospace" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CFG"
-            android:textColor="#55FFFFFF"
-            android:textSize="9sp"
-            android:letterSpacing="0.05"
-            android:fontFamily="monospace"
-            android:layout_marginStart="14dp" />
+            <TextView
+                android:id="@+id/batteryStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BAT: --%"
+                android:textColor="#55FFFFFF"
+                android:textSize="9sp"
+                android:letterSpacing="0.05"
+                android:fontFamily="monospace"
+                android:layout_marginStart="14dp" />
+
+            <TextView
+                android:id="@+id/timeStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="#55FFFFFF"
+                android:textSize="9sp"
+                android:letterSpacing="0.05"
+                android:fontFamily="monospace"
+                android:layout_marginStart="14dp" />
+        </LinearLayout>
     </LinearLayout>
 
 </RelativeLayout>

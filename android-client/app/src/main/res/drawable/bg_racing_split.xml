@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1920dp"
+    android:height="1080dp"
+    android:viewportWidth="1920"
+    android:viewportHeight="1080">
+    
+    <!-- Fondo oscuro derecho -->
+    <path
+        android:fillColor="#0A0A0A"
+        android:pathData="M0,0 h1920 v1080 h-1920 z" />
+        
+    <!-- Panel diagonal izquierdo -->
+    <path
+        android:fillColor="#121212"
+        android:pathData="M0,0 h900 l-300,1080 h-600 z" />
+        
+    <!-- Línea naranja -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M900,0 h20 l-300,1080 h-20 z" />
+        
+    <!-- Línea blanca -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.7"
+        android:pathData="M930,0 h8 l-300,1080 h-8 z" />
+        
+</vector>

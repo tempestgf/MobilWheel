@@ -22,6 +22,9 @@ class SettingsActivity : AppCompatActivity() {
         val acceleratorValue: TextView = findViewById(R.id.accelerator_value)
         val brakeSensitivity: SeekBar = findViewById(R.id.brake_sensitivity)
         val brakeValue: TextView = findViewById(R.id.brake_value)
+        val switchMuteVideo: android.widget.Switch = findViewById(R.id.switch_mute_video)
+        val switchTelemetry: android.widget.Switch = findViewById(R.id.switch_telemetry)
+        val backButton: android.widget.Button = findViewById(R.id.button_back)
 
         // Cargar valores guardados
         val sharedPrefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
@@ -30,6 +33,8 @@ class SettingsActivity : AppCompatActivity() {
         val savedClickTimeLimit = sharedPrefs.getFloat(PREF_CLICK_TIME_LIMIT, DEFAULT_CLICK_TIME_LIMIT)
         val savedAcceleratorSensitivity = sharedPrefs.getFloat(PREF_ACCELERATOR_SENSITIVITY, DEFAULT_ACCELERATOR_SENSITIVITY)
         val savedBrakeSensitivity = sharedPrefs.getFloat(PREF_BRAKE_SENSITIVITY, DEFAULT_BRAKE_SENSITIVITY)
+        val savedMuteVideo = sharedPrefs.getBoolean(PREF_MUTE_VIDEO, DEFAULT_MUTE_VIDEO)
+        val savedTelemetryEnabled = sharedPrefs.getBoolean(PREF_TELEMETRY_ENABLED, DEFAULT_TELEMETRY_ENABLED)
 
         // Establecer valores guardados en los SeekBar y TextView
         steeringAngle.progress = savedAngle
@@ -46,6 +51,9 @@ class SettingsActivity : AppCompatActivity() {
 
         brakeSensitivity.progress = (savedBrakeSensitivity * 10).toInt()
         brakeValue.text = String.format("%.1f", savedBrakeSensitivity)
+        
+        switchMuteVideo.isChecked = savedMuteVideo
+        switchTelemetry.isChecked = savedTelemetryEnabled
 
         // Manejar cambios en el SeekBar de ángulo
         steeringAngle.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -105,6 +113,21 @@ class SettingsActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+
+        // Manejar cambios en el Switch de Mute Video
+        switchMuteVideo.setOnCheckedChangeListener { _, isChecked ->
+            saveMuteVideo(isChecked)
+        }
+
+        // Manejar cambios en el Switch de Telemetría
+        switchTelemetry.setOnCheckedChangeListener { _, isChecked ->
+            saveTelemetryEnabled(isChecked)
+        }
+
+        // Manejar botón de regreso
+        backButton.setOnClickListener {
+            finish()
+        }
     }
 
     private fun saveSteeringAngle(angle: Int) {
@@ -147,18 +170,38 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveMuteVideo(mute: Boolean) {
+        val sharedPrefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
+        with(sharedPrefs.edit()) {
+            putBoolean(PREF_MUTE_VIDEO, mute)
+            apply()
+        }
+    }
+
+    private fun saveTelemetryEnabled(enabled: Boolean) {
+        val sharedPrefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
+        with(sharedPrefs.edit()) {
+            putBoolean(PREF_TELEMETRY_ENABLED, enabled)
+            apply()
+        }
+    }
+
     companion object {
         // Definir las claves para las preferencias
         const val PREF_SWIPE_THRESHOLD = "pref_swipe_threshold"
         const val PREF_CLICK_TIME_LIMIT = "pref_click_time_limit"
         const val PREF_ACCELERATOR_SENSITIVITY = "pref_accelerator_sensitivity"
         const val PREF_BRAKE_SENSITIVITY = "pref_brake_sensitivity"
+        const val PREF_MUTE_VIDEO = "pref_mute_video"
+        const val PREF_TELEMETRY_ENABLED = "pref_telemetry_enabled"
 
         // Valores predeterminados
         const val DEFAULT_SWIPE_THRESHOLD = 4.0f // en mm
         const val DEFAULT_CLICK_TIME_LIMIT = 0.25f // en segundos
         const val DEFAULT_ACCELERATOR_SENSITIVITY = 4.0f // sensibilidad predeterminada
         const val DEFAULT_BRAKE_SENSITIVITY = 4.0f // sensibilidad predeterminada
+        const val DEFAULT_MUTE_VIDEO = true // muteado por defecto
+        const val DEFAULT_TELEMETRY_ENABLED = true
     }
 }
 

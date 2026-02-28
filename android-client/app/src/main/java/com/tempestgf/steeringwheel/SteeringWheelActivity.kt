@@ -44,6 +44,12 @@ import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.LinkedBlockingQueue
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
 
@@ -69,11 +75,24 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var gearContainer: LinearLayout
     private lateinit var gearIndicatorView: TextView
     private lateinit var speedValueView: TextView
-    private lateinit var rpmDots: List<View>   // 10 LEDs: verde(1-4) → amarillo(5-7) → rojo(8-10, zona de cambio)
+    private lateinit var rpmDots: List<View>   // 15 LEDs: verde(1-5) → amarillo(6-10) → rojo(11-15, zona de cambio)
     private lateinit var ipAddressDisplay: TextView
     private lateinit var rpmIndicator: TextView
     private lateinit var connectionLabel: TextView
     private lateinit var connectionDot: View
+    private lateinit var batteryStatusText: TextView
+    private lateinit var timeStatusText: TextView
+    private lateinit var wifiStatusText: TextView
+
+    // ── Vistas Telemetría (para ocultar/mostrar) ──────────────────────────────
+    private lateinit var cockpitGlow: View
+    private lateinit var cockpitArcOuter: View
+    private lateinit var cockpitArcInner: View
+    private lateinit var horizonLine: View
+    private lateinit var centerGearBlock: View
+    private lateinit var speedContainer: View
+    private lateinit var ffbContainer: View
+    private lateinit var rpmContainer: View
 
     // ── Red TCP ───────────────────────────────────────────────────────────────
     private var serverAddress = "192.168.176.150"
@@ -106,6 +125,11 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var vibrator: Vibrator
 
     private var isDialogShowing = false
+    
+    // ── Actualización de estado (Batería, Hora, Ping) ─────────────────────────
+    private var statusUpdateJob: Job? = null
+    private var lastPingTime: Long = 0
+    private var currentPing: Long = 0
 
     // ─────────────────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -141,6 +165,52 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
 
         setConnectionState(false, null)
         showConnectionOptions()
+        
+        startStatusUpdates()
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ACTUALIZACIÓN DE ESTADO (Batería, Hora, Ping)
+    // ─────────────────────────────────────────────────────────────────────────
+    private fun startStatusUpdates() {
+        statusUpdateJob = CoroutineScope(Dispatchers.Main).launch {
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            while (isActive) {
+                // Actualizar hora
+                timeStatusText.text = timeFormat.format(Date())
+                
+                // Actualizar batería
+                val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
+                    applicationContext.registerReceiver(null, ifilter)
+                }
+                val level: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                val batteryPct = if (level != -1 && scale != -1) (level * 100 / scale.toFloat()).toInt() else -1
+                
+                if (batteryPct != -1) {
+                    batteryStatusText.text = "BAT: $batteryPct%"
+                    // Cambiar color si la batería es baja
+                    if (batteryPct <= 15) {
+                        batteryStatusText.setTextColor(0xFFFF6B6B.toInt()) // Rojo
+                    } else {
+                        batteryStatusText.setTextColor(0x55FFFFFF.toInt()) // Blanco semi-transparente
+                    }
+                }
+                
+                // Actualizar ping (simulado o real si hay conexión)
+                if (isConnected()) {
+                    // Enviar un comando de ping ligero si es necesario, o usar el tiempo de respuesta de telemetría
+                    // Por ahora mostramos un valor estimado basado en la conexión local
+                    wifiStatusText.text = "PING: <5ms"
+                    wifiStatusText.setTextColor(0xFF4ADE80.toInt()) // Verde
+                } else {
+                    wifiStatusText.text = "PING: --"
+                    wifiStatusText.setTextColor(0x55FFFFFF.toInt())
+                }
+                
+                delay(10000) // Actualizar cada 10 segundos
+            }
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -163,10 +233,23 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
         rpmIndicator       = findViewById(R.id.rpmIndicator)
         connectionLabel    = findViewById(R.id.connectionLabel)
         connectionDot      = findViewById(R.id.connectionDot)
+        batteryStatusText  = findViewById(R.id.batteryStatusText)
+        timeStatusText     = findViewById(R.id.timeStatusText)
+        wifiStatusText     = findViewById(R.id.wifiStatusText)
+
+        cockpitGlow        = findViewById(R.id.cockpitGlow)
+        cockpitArcOuter    = findViewById(R.id.cockpitArcOuter)
+        cockpitArcInner    = findViewById(R.id.cockpitArcInner)
+        horizonLine        = findViewById(R.id.horizonLine)
+        centerGearBlock    = findViewById(R.id.centerGearBlock)
+        speedContainer     = findViewById(R.id.speedContainer)
+        ffbContainer       = findViewById(R.id.ffbContainer)
+        rpmContainer       = findViewById(R.id.rpmContainer)
 
         rpmDots = listOf(
             R.id.rpmDot1,  R.id.rpmDot2,  R.id.rpmDot3,  R.id.rpmDot4,  R.id.rpmDot5,
-            R.id.rpmDot6,  R.id.rpmDot7,  R.id.rpmDot8,  R.id.rpmDot9,  R.id.rpmDot10
+            R.id.rpmDot6,  R.id.rpmDot7,  R.id.rpmDot8,  R.id.rpmDot9,  R.id.rpmDot10,
+            R.id.rpmDot11, R.id.rpmDot12, R.id.rpmDot13, R.id.rpmDot14, R.id.rpmDot15
         ).map { id -> findViewById(id) }
     }
 
@@ -299,15 +382,12 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
      * Parsea "T:velocidad:marcha:rpm" y actualiza el HUD.
      * Marcha:  0=R, 1=N, 2=1ª, 3=2ª, …  (igual que AC UDP)
      * 
-     * Lógica mejorada de cambio óptimo:
-     * - Verde (dots 1-4): 40-70% del rango - Zona segura
-     * - Amarillo (dots 5-7): 70-85% del rango - Altas RPM
-     * - Rojo (dots 8-10): 85-100% del rango - ¡CAMBIO ÓPTIMO!
-     * 
-     * El punto de cambio óptimo se calcula dinámicamente según:
-     * - El rango de RPM del coche (6000-15000+)
-     * - La curva de potencia típica del motor
-     * Cuando los 3 dots rojos están encendidos = momento perfecto para cambiar
+     * 15 dots distribuidos en 3 zonas de color:
+     *   Verde  (1-5):   30–62% del rango — zona segura
+     *   Amarillo (6-10): 64–82% del rango — RPM altas, prepararse
+     *   Rojo (11-15):    85–97% del rango — ¡ZONA DE CAMBIO!
+     *
+     * Cuando los 5 dots rojos estén encendidos → cambiar marcha AHORA.
      */
     private fun parseTelemetryLine(line: String) {
         val parts = line.split(":")
@@ -327,8 +407,7 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
         
         val rpmFraction = (rpm / rpmMax).coerceIn(0f, 1f)
         
-        // Zona de cambio óptimo: 85-95% del rango
-        // (evita llegar al limitador que suele estar a 98-100%)
+        // Zona de cambio óptimo
         val optimalShiftStart = 0.85f
         val redlineStart = 0.95f
 
@@ -341,40 +420,23 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
             
             // Color del texto según zona
             rpmIndicator.setTextColor(when {
-                rpmFraction >= redlineStart      -> 0xFFFF0000.toInt()  // Rojo brillante (limitador cerca!)
-                rpmFraction >= optimalShiftStart -> 0xFFf7768e.toInt()  // Rosa/Rojo (¡cambiar ahora!)
+                rpmFraction >= redlineStart      -> 0xFFFF0000.toInt()  // Rojo brillante (limitador!)
+                rpmFraction >= optimalShiftStart -> 0xFFf7768e.toInt()  // Rosa/Rojo (¡cambiar!)
                 rpmFraction >= 0.70f             -> 0xFFe0af68.toInt()  // Amarillo (prepararse)
                 else                             -> 0xFFff9e64.toInt()  // Naranja (normal)
             })
             
-            // Actualizar los 10 dots con lógica mejorada
-            // Dots 1-4 (verde): 40-70% del rango
-            // Dots 5-7 (amarillo): 70-85% del rango
-            // Dots 8-10 (rojo): 85-100% del rango (¡ZONA DE CAMBIO!)
+            // 15 dots con distribución no-lineal optimizada para shift lights
+            // Verde (1-5):  30% → 62%  |  Amarillo (6-10): 64% → 82%  |  Rojo (11-15): 85% → 97%
+            val thresholds = floatArrayOf(
+                0.30f, 0.38f, 0.46f, 0.54f, 0.62f,  // Verde: zona segura
+                0.64f, 0.68f, 0.72f, 0.77f, 0.82f,  // Amarillo: altas RPM
+                0.85f, 0.88f, 0.91f, 0.94f, 0.97f   // Rojo: ¡CAMBIAR!
+            )
+            
             rpmDots.forEachIndexed { i, dot ->
-                // Calcular umbral de cada dot (distribución no lineal)
-                val dotThreshold = when (i) {
-                    0 -> 0.40f  // Dot 1: 40%
-                    1 -> 0.50f  // Dot 2: 50%
-                    2 -> 0.60f  // Dot 3: 60%
-                    3 -> 0.70f  // Dot 4: 70%
-                    4 -> 0.75f  // Dot 5: 75% (amarillo)
-                    5 -> 0.80f  // Dot 6: 80%
-                    6 -> 0.85f  // Dot 7: 85%
-                    7 -> 0.88f  // Dot 8: 88% (rojo - inicio zona óptima)
-                    8 -> 0.92f  // Dot 9: 92% (rojo - cambiar ya!)
-                    9 -> 0.95f  // Dot 10: 95% (rojo - limitador cerca!)
-                    else -> 1.0f
-                }
-                
-                // Brillo máximo cuando activo, muy tenue cuando inactivo
-                dot.alpha = if (rpmFraction >= dotThreshold) 1.0f else 0.15f
-                
-                // Parpadeo en los dots rojos cuando estás en zona de cambio óptima
-                if (i >= 7 && rpmFraction >= optimalShiftStart && rpmFraction < redlineStart) {
-                    // Efecto de pulsación suave para indicar "cambiar ahora"
-                    dot.alpha = if (rpmFraction >= dotThreshold) 1.0f else 0.4f
-                }
+                val lit = rpmFraction >= thresholds[i]
+                dot.alpha = if (lit) 1.0f else 0.15f
             }
         }
     }
@@ -481,18 +543,45 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
     // ─────────────────────────────────────────────────────────────────────────
     // SENSOR: ACELERÓMETRO (steering + contra-rotación HUD)
     // ─────────────────────────────────────────────────────────────────────────
+    
+    // Variables to track continuous rotation
+    private var lastRawAngle = 0f
+    private var continuousAngle = 0f
+    private var isFirstReading = true
+
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {
             if (it.sensor.type == Sensor.TYPE_ACCELEROMETER) {
                 val rawY = it.values[1]
                 val rawX = it.values[0]
 
-                var steeringAngle = Math.toDegrees(
+                // Calculate raw angle using atan2 (-180 to 180)
+                val rawAngle = Math.toDegrees(
                     Math.atan2(rawY.toDouble(), rawX.toDouble())
                 ).toFloat()
 
-                if (steeringAngle > 180) steeringAngle -= 360
-                else if (steeringAngle < -180) steeringAngle += 360
+                if (isFirstReading) {
+                    lastRawAngle = rawAngle
+                    continuousAngle = rawAngle
+                    isFirstReading = false
+                } else {
+                    // Calculate the shortest angular distance between the new angle and the last angle
+                    var delta = rawAngle - lastRawAngle
+                    
+                    // If the delta is greater than 180, it means we crossed the -180/180 boundary
+                    if (delta > 180f) {
+                        delta -= 360f
+                    } else if (delta < -180f) {
+                        delta += 360f
+                    }
+                    
+                    // Add the continuous delta to our accumulated angle
+                    continuousAngle += delta
+                    lastRawAngle = rawAngle
+                }
+
+                // Use the continuous angle for steering
+                val steeringAngle = continuousAngle
 
                 // ── Contra-rotación del HUD (indicador de marcha siempre recto) ──
                 smoothedHudAngle = HUD_ALPHA * steeringAngle + (1f - HUD_ALPHA) * smoothedHudAngle
@@ -885,7 +974,7 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
     private fun showConnectionOptions() {
         if (isDialogShowing) return
         val options = arrayOf("WiFi (Auto-detect)", "USB Tethering (Auto-detect)", "Manual IP Address")
-        MaterialAlertDialogBuilder(this, R.style.TokyoNightDialogTheme)
+        MaterialAlertDialogBuilder(this, R.style.GeneonDialogTheme)
             .setTitle("Connect to PC Server")
             .setAdapter(ArrayAdapter(this, R.layout.dialog_list_item, options)) { _, which ->
                 isDialogShowing = false
@@ -905,7 +994,7 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
             inputType = InputType.TYPE_CLASS_TEXT
             setTextColor(ContextCompat.getColor(this@SteeringWheelActivity, android.R.color.white))
         }
-        MaterialAlertDialogBuilder(this, R.style.TokyoNightDialogTheme)
+        MaterialAlertDialogBuilder(this, R.style.GeneonDialogTheme)
             .setTitle("Enter PC IP Address")
             .setMessage("Enter the IP address shown in the Python Server app:")
             .setView(input)
@@ -930,10 +1019,24 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
         clickTimeLimit          = prefs.getFloat(SettingsActivity.PREF_CLICK_TIME_LIMIT, SettingsActivity.DEFAULT_CLICK_TIME_LIMIT)
         swipeThresholdInPx      = prefs.getFloat(SettingsActivity.PREF_SWIPE_THRESHOLD, SettingsActivity.DEFAULT_SWIPE_THRESHOLD) *
                                   resources.displayMetrics.xdpi / 25.4f
+                                  
+        // Telemetry visibility
+        val telemetryEnabled = prefs.getBoolean(SettingsActivity.PREF_TELEMETRY_ENABLED, true)
+        val visibility = if (telemetryEnabled) View.VISIBLE else View.GONE
+        
+        cockpitGlow.visibility = visibility
+        cockpitArcOuter.visibility = visibility
+        cockpitArcInner.visibility = visibility
+        horizonLine.visibility = visibility
+        centerGearBlock.visibility = visibility
+        speedContainer.visibility = visibility
+        ffbContainer.visibility = visibility
+        rpmContainer.visibility = visibility
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        statusUpdateJob?.cancel()
         sensorManager.unregisterListener(this)
         soundPool.release()
         stopAcTelemetry()

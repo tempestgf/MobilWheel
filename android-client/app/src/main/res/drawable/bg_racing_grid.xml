@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1920dp"
+    android:height="1080dp"
+    android:viewportWidth="1920"
+    android:viewportHeight="1080">
+
+    <!-- Fondo base oscuro -->
+    <path
+        android:fillColor="#0A0A0A"
+        android:pathData="M0,0 h1920 v1080 h-1920 z" />
+
+    <!-- Patrón de fibra de carbono / rejilla sutil (simulado con líneas) -->
+    <path
+        android:fillColor="#121212"
+        android:pathData="M0,100 h1920 v2 h-1920 z M0,200 h1920 v2 h-1920 z M0,300 h1920 v2 h-1920 z M0,400 h1920 v2 h-1920 z M0,500 h1920 v2 h-1920 z M0,600 h1920 v2 h-1920 z M0,700 h1920 v2 h-1920 z M0,800 h1920 v2 h-1920 z M0,900 h1920 v2 h-1920 z M0,1000 h1920 v2 h-1920 z" />
+
+    <!-- Acento inferior naranja (estilo difusor/alerón) -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M0,1060 h1920 v20 h-1920 z" />
+        
+    <!-- Línea blanca fina sobre el acento naranja -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.5"
+        android:pathData="M0,1055 h1920 v2 h-1920 z" />
+
+    <!-- Elemento decorativo superior izquierdo (estilo HUD) -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M0,0 h150 l-30,30 h-120 z" />
+        
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.3"
+        android:pathData="M160,0 h40 l-30,30 h-40 z" />
+
+</vector>

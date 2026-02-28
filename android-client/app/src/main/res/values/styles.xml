@@ -11,39 +11,41 @@
         <item name="android:windowNoTitle">true</item>
 
         <!-- Splash Screen (Android 12+) -->
-        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@drawable/app_logo</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@drawable/splash_icon</item>
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">@color/racing_black</item>
     </style>
 
-    <!-- Tokyo Night Dialog Theme -->
-    <style name="TokyoNightDialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
+    <!-- Geneon Dialog Theme -->
+    <style name="GeneonDialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
         <!-- Force Dark Scheme Colors -->
-        <item name="colorSurface">#1a1b26</item>
-        <item name="colorOnSurface">#c0caf5</item>
+        <item name="colorSurface">@color/geneon_black</item>
+        <item name="colorOnSurface">@color/geneon_white</item>
         
         <!-- Text Colors -->
-        <item name="android:textColor">#c0caf5</item>
-        <item name="android:textColorPrimary">#c0caf5</item>
-        <item name="android:textColorSecondary">#a9b1d6</item>
+        <item name="android:textColor">@color/geneon_white</item>
+        <item name="android:textColorPrimary">@color/geneon_white</item>
+        <item name="android:textColorSecondary">@color/racing_silver</item>
         
         <!-- Dialog Background (Important) -->
-        <item name="android:background">#1a1b26</item>
+        <item name="android:background">@color/geneon_black</item>
         
         <!-- Buttons -->
-        <item name="colorPrimary">#7aa2f7</item>
-        <item name="colorOnPrimary">#1a1b26</item>
+        <item name="colorPrimary">@color/geneon_orange</item>
+        <item name="colorOnPrimary">@color/geneon_black</item>
         
         <!-- Button Styles -->
-        <item name="buttonBarPositiveButtonStyle">@style/TokyoNightDialogButton</item>
-        <item name="buttonBarNegativeButtonStyle">@style/TokyoNightDialogButton</item>
-        <item name="buttonBarNeutralButtonStyle">@style/TokyoNightDialogButton</item>
+        <item name="buttonBarPositiveButtonStyle">@style/GeneonDialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/GeneonDialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/GeneonDialogButton</item>
 
         <!-- List Item Style (Crucial for setItems visibility) -->
-        <item name="android:textColorAlertDialogListItem">#c0caf5</item>
+        <item name="android:textColorAlertDialogListItem">@color/geneon_white</item>
     </style>
 
     <!-- Custom Button Style -->
-    <style name="TokyoNightDialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
-        <item name="android:textColor">#7aa2f7</item>
+    <style name="GeneonDialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/geneon_orange</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

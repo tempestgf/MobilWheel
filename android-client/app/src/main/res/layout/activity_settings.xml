@@ -1,234 +1,333 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/tokyo_bg"
-    android:padding="24dp"
-    android:fillViewport="true">
+    android:background="#000000">
 
-    <LinearLayout
+    <!-- Racing Overlay -->
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_racing_overlay"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Settings"
-            android:textSize="32sp"
-            android:textColor="@color/tokyo_fg"
-            android:fontFamily="sans-serif-medium"
-            android:layout_marginBottom="24dp"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/tokyo_card_background"
-            android:padding="24dp"
-            android:elevation="0dp"
-            android:layout_marginBottom="16dp"
-            android:clipToPadding="false">
+            android:gravity="center_horizontal">
 
-            <!-- Steering Angle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SETTINGS"
+                android:textSize="32sp"
+                android:textColor="@color/geneon_white"
+                android:fontFamily="sans-serif-black"
+                android:textStyle="italic"
+                android:layout_marginBottom="24dp"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="24dp">
+                android:background="#1AFFFFFF"
+                android:padding="24dp"
+                android:elevation="0dp"
+                android:layout_marginBottom="16dp"
+                android:clipToPadding="false">
 
-                <LinearLayout 
+                <!-- Steering Angle -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout 
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="STEERING ANGLE"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textColor="@color/geneon_white"
+                            android:textSize="16sp"/>
+                        <TextView
+                            android:id="@+id/steering_angle_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="90°"
+                            android:textColor="@color/geneon_orange"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textSize="16sp"/>
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/steering_angle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="900"
+                        android:progress="90"
+                        android:layout_marginTop="12dp"
+                        android:progressTint="@color/geneon_orange"
+                        android:thumbTint="@color/geneon_orange"/>
+                </LinearLayout>
+
+                <!-- Swipe Threshold -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout 
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="SWIPE THRESHOLD"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textColor="@color/geneon_white"
+                            android:textSize="16sp"/>
+                        <TextView
+                            android:id="@+id/swipe_threshold_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4.0 mm"
+                            android:textColor="@color/geneon_orange"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textSize="16sp"/>
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/swipe_threshold"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="40"
+                        android:progress="40"
+                        android:layout_marginTop="12dp"
+                        android:progressTint="@color/geneon_orange"
+                        android:thumbTint="@color/geneon_orange"/>
+                </LinearLayout>
+
+                <!-- Click Time Limit -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout 
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="CLICK TIME LIMIT"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textColor="@color/geneon_white"
+                            android:textSize="16sp"/>
+                        <TextView
+                            android:id="@+id/click_time_limit_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0.25 sec"
+                            android:textColor="@color/geneon_orange"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textSize="16sp"/>
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/click_time_limit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="25"
+                        android:layout_marginTop="12dp"
+                        android:progressTint="@color/geneon_orange"
+                        android:thumbTint="@color/geneon_orange"/>
+                </LinearLayout>
+
+                <!-- Accelerator Sensitivity -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout 
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="ACCELERATOR SENSITIVITY"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textColor="@color/geneon_white"
+                            android:textSize="16sp"/>
+                        <TextView
+                            android:id="@+id/accelerator_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="40"
+                            android:textColor="@color/geneon_orange"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textSize="16sp"/>
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/accelerator_sensitivity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="80"
+                        android:progress="40"
+                        android:layout_marginTop="12dp"
+                        android:progressTint="@color/geneon_orange"
+                        android:thumbTint="@color/geneon_orange"/>
+                </LinearLayout>
+
+                <!-- Brake Sensitivity -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout 
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="BRAKE SENSITIVITY"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textColor="@color/geneon_white"
+                            android:textSize="16sp"/>
+                        <TextView
+                            android:id="@+id/brake_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="40"
+                            android:textColor="@color/geneon_orange"
+                            android:fontFamily="sans-serif-condensed"
+                            android:textStyle="bold"
+                            android:textSize="16sp"/>
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/brake_sensitivity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="80"
+                        android:progress="40"
+                        android:layout_marginTop="12dp"
+                        android:progressTint="@color/geneon_orange"
+                        android:thumbTint="@color/geneon_orange"/>
+                </LinearLayout>
+
+                <!-- Mute Background Video -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="24dp">
+                    
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Steering Angle"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/tokyo_fg"
+                        android:text="MUTE BACKGROUND VIDEO"
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="bold"
+                        android:textColor="@color/geneon_white"
                         android:textSize="16sp"/>
-                    <TextView
-                        android:id="@+id/steering_angle_value"
+                        
+                    <Switch
+                        android:id="@+id/switch_mute_video"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="90°"
-                        android:textColor="@color/tokyo_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"/>
+                        android:thumbTint="@color/geneon_orange"
+                        android:trackTint="#4DFFFFFF"/>
                 </LinearLayout>
 
-                <SeekBar
-                    android:id="@+id/steering_angle"
+                <!-- Enable Telemetry -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:max="900"
-                    android:progress="90"
-                    android:layout_marginTop="12dp"
-                    android:progressTint="@color/tokyo_primary"
-                    android:thumbTint="@color/tokyo_primary"/>
-            </LinearLayout>
-
-            <!-- Swipe Threshold -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout 
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Swipe Threshold"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/tokyo_fg"
+                        android:text="ENABLE TELEMETRY"
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="bold"
+                        android:textColor="@color/geneon_white"
                         android:textSize="16sp"/>
-                    <TextView
-                        android:id="@+id/swipe_threshold_value"
+                        
+                    <Switch
+                        android:id="@+id/switch_telemetry"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4.0 mm"
-                        android:textColor="@color/tokyo_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"/>
+                        android:thumbTint="@color/geneon_orange"
+                        android:trackTint="#4DFFFFFF"/>
                 </LinearLayout>
-
-                <SeekBar
-                    android:id="@+id/swipe_threshold"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="40"
-                    android:progress="40"
-                    android:layout_marginTop="12dp"
-                    android:progressTint="@color/tokyo_primary"
-                    android:thumbTint="@color/tokyo_primary"/>
             </LinearLayout>
 
-            <!-- Click Time Limit -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
+            <Button
+                android:id="@+id/button_back"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="@string/back_button"
+                android:textColor="@color/geneon_white"
+                android:background="@drawable/geneon_button_secondary"
+                android:paddingHorizontal="32dp"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:stateListAnimator="@null"
+                android:elevation="0dp"/>
 
-                <LinearLayout 
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Click Time Limit"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/tokyo_fg"
-                        android:textSize="16sp"/>
-                    <TextView
-                        android:id="@+id/click_time_limit_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0.25 sec"
-                        android:textColor="@color/tokyo_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"/>
-                </LinearLayout>
-
-                <SeekBar
-                    android:id="@+id/click_time_limit"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="25"
-                    android:layout_marginTop="12dp"
-                    android:progressTint="@color/tokyo_primary"
-                    android:thumbTint="@color/tokyo_primary"/>
-            </LinearLayout>
-
-            <!-- Accelerator Sensitivity -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout 
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Accelerator Sensitivity"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/tokyo_fg"
-                        android:textSize="16sp"/>
-                    <TextView
-                        android:id="@+id/accelerator_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="40"
-                        android:textColor="@color/tokyo_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"/>
-                </LinearLayout>
-
-                <SeekBar
-                    android:id="@+id/accelerator_sensitivity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="80"
-                    android:progress="40"
-                    android:layout_marginTop="12dp"
-                    android:progressTint="@color/tokyo_primary"
-                    android:thumbTint="@color/tokyo_primary"/>
-            </LinearLayout>
-
-            <!-- Brake Sensitivity -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout 
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Brake Sensitivity"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/tokyo_fg"
-                        android:textSize="16sp"/>
-                    <TextView
-                        android:id="@+id/brake_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="40"
-                        android:textColor="@color/tokyo_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"/>
-                </LinearLayout>
-
-                <SeekBar
-                    android:id="@+id/brake_sensitivity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="80"
-                    android:progress="40"
-                    android:layout_marginTop="12dp"
-                    android:progressTint="@color/tokyo_primary"
-                    android:thumbTint="@color/tokyo_primary"/>
-            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

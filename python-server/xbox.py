@@ -9,15 +9,14 @@ import logging
 from collections import deque
 import threading
 import signal
-import tkinter as tk
 
-# Import AC Telemetry
+# Import Game Telemetry
 try:
-    from ac_telemetry import ACTelemetryReader, ACPhysics
-    AC_TELEMETRY_AVAILABLE = True
+    from game_telemetry import GameTelemetryReader, GamePhysics
+    TELEMETRY_AVAILABLE = True
 except ImportError:
-    AC_TELEMETRY_AVAILABLE = False
-    logging.warning("AC Telemetry module not available")
+    TELEMETRY_AVAILABLE = False
+    logging.warning("Game Telemetry module not available")
 
 # Configuración del registro
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -272,16 +271,15 @@ def _set_axis_linux(device_id, axis_id, value):
     else:
         logging.error(f"Axis {axis_id} not mapped for Linux")
 
-def forward_ac_telemetry(client_conn, stop_event, send_lock):
+def forward_game_telemetry(client_conn, stop_event, send_lock):
     """
-    Lee telemetría de Assetto Corsa mediante shared memory y la reenvía
+    Lee telemetría del juego detectado y la reenvía
     al teléfono por la conexión TCP existente como 'T:velocidad:marcha:rpm\n'.
     
-    Usa ACTelemetryReader (shared memory) en lugar de UDP para mayor confiabilidad.
-    Se reintenta automáticamente cada 3s si AC no está disponible.
+    Se reintenta automáticamente cada 3s si no hay juego disponible.
     """
-    if not AC_TELEMETRY_AVAILABLE:
-        logging.warning("AC Telemetry not available, skipping telemetry forwarding")
+    if not TELEMETRY_AVAILABLE:
+        logging.warning("Game Telemetry not available, skipping telemetry forwarding")
         return
     
     SEND_INTERVAL = 1.0 / 10.0  # 10 Hz hacia el móvil (reducido para priorizar comandos del volante)
@@ -291,22 +289,22 @@ def forward_ac_telemetry(client_conn, stop_event, send_lock):
     
     while not stop_event.is_set():
         try:
-            # Intentar conectar a AC si no está conectado
+            # Intentar conectar al juego si no está conectado
             if telemetry_reader is None:
-                telemetry_reader = ACTelemetryReader()
+                telemetry_reader = GameTelemetryReader()
                 if not telemetry_reader.connect():
-                    logging.debug("AC no disponible (menú/sin sesión) — reintentando en 3s")
+                    logging.debug("Juego no disponible — reintentando en 3s")
                     time.sleep(3)
                     telemetry_reader = None
                     continue
-                logging.info("Conectado a AC telemetry (shared memory)")
+                logging.info(f"Conectado a telemetría de {telemetry_reader.current_game}")
             
             # Leer datos de telemetría
             data = telemetry_reader.read_physics()
             
             if data is None:
-                # Perdimos conexión con AC
-                logging.debug("Perdida conexión con AC, reconectando...")
+                # Perdimos conexión con el juego
+                logging.debug("Perdida conexión con el juego, reconectando...")
                 telemetry_reader.disconnect()
                 telemetry_reader = None
                 time.sleep(3)
@@ -334,16 +332,17 @@ def forward_ac_telemetry(client_conn, stop_event, send_lock):
                 try:
                     with send_lock:
                         client_conn.sendall(msg.encode('utf-8'))
-                except OSError:
+                    logging.debug(f"Telemetry sent: {msg.strip()}")
+                except (OSError, BrokenPipeError, ConnectionResetError) as e:
                     # Cliente desconectado
-                    logging.info("Cliente desconectado, deteniendo telemetría")
+                    logging.info(f"Cliente desconectado ({e}), deteniendo telemetría")
                     break
             
             # Pausa para no saturar la CPU ni la red (priorizar comandos del volante)
             time.sleep(0.05)  # 20Hz polling rate, envío a 10Hz
             
         except Exception as e:
-            logging.error(f"Error en telemetría AC: {e}")
+            logging.error(f"Error en telemetría: {e}")
             if telemetry_reader:
                 telemetry_reader.disconnect()
                 telemetry_reader = None
@@ -396,8 +395,10 @@ def process_critical_message(device_id, message, update_ui_callback=None):
         # Actualiza la interfaz gráfica
         if update_ui_callback:
             logging.info(f"Calling UI callback for button: {button_name}")
-            root = tk._default_root  # Asegúrate de que este sea el root de Tkinter
-            root.after(0, update_ui_callback, button_name, True)
+            try:
+                update_ui_callback(button_name, True)
+            except Exception as e:
+                logging.error(f"Error calling UI callback: {e}")
         else:
             logging.error("update_ui_callback is None!")
     else:
@@ -483,16 +484,16 @@ def handle_client(conn, addr, update_ui_callback=None):
         conn.close()
         return
 
-    # Arrancar el hilo de telemetría AC: lee UDP en localhost y reenvía por TCP al móvil
+    # Arrancar el hilo de telemetría: lee datos del juego y reenvía por TCP al móvil
     client_stop = threading.Event()
     send_lock   = threading.Lock()
     telem_thread = threading.Thread(
-        target=forward_ac_telemetry,
+        target=forward_game_telemetry,
         args=(conn, client_stop, send_lock),
         daemon=True
     )
     telem_thread.start()
-    logging.info(f"AC telemetry forwarder started for {addr}")
+    logging.info(f"Game telemetry forwarder started for {addr}")
 
     try:
         with conn:
@@ -559,30 +560,40 @@ def handle_critical_messages(device_id, update_ui_callback=None):
     logging.info(f"handle_critical_messages received update_ui_callback: {update_ui_callback is not None}")
     thread_name = threading.current_thread().name
     while not shutdown_event.is_set():
-        if device_id not in device_states:
-            logging.info(f"Exiting {thread_name} because the device state no longer exists.")
+        try:
+            state = device_states.get(device_id)
+            if state is None:
+                logging.info(f"Exiting {thread_name} because the device state no longer exists.")
+                break
+            if state['critical_message_queue']:
+                msg = state['critical_message_queue'].popleft()
+                process_critical_message(device_id, msg, update_ui_callback)
+            else:
+                time.sleep(0.001)  # Reduced sleep time for faster response
+        except (KeyError, IndexError):
+            logging.info(f"Exiting {thread_name}: device {device_id} was removed.")
             break
-        if device_states[device_id]['critical_message_queue']:
-            msg = device_states[device_id]['critical_message_queue'].popleft()
-            process_critical_message(device_id, msg, update_ui_callback)
-        else:
-            time.sleep(0.001)  # Reduced sleep time for faster response
 
 
 def handle_non_critical_messages(device_id, update_ui_callback=None):
     thread_name = threading.current_thread().name
     while not shutdown_event.is_set():
-        if device_id not in device_states:
-            logging.info(f"Exiting {thread_name} because the device state no longer exists.")
+        try:
+            state = device_states.get(device_id)
+            if state is None:
+                logging.info(f"Exiting {thread_name} because the device state no longer exists.")
+                break
+            processed_count = 0
+            # Process more messages per batch for better throughput
+            while state['non_critical_message_queue'] and processed_count < 20:
+                msg = state['non_critical_message_queue'].popleft()
+                process_non_critical_message(device_id, msg, update_ui_callback)
+                processed_count += 1
+            if processed_count == 0:
+                time.sleep(0.001)  # Short sleep when no messages
+        except (KeyError, IndexError):
+            logging.info(f"Exiting {thread_name}: device {device_id} was removed.")
             break
-        processed_count = 0
-        # Process more messages per batch for better throughput
-        while device_states[device_id]['non_critical_message_queue'] and processed_count < 20:
-            msg = device_states[device_id]['non_critical_message_queue'].popleft()
-            process_non_critical_message(device_id, msg, update_ui_callback)
-            processed_count += 1
-        if processed_count == 0:
-            time.sleep(0.001)  # Short sleep when no messages
 
 def get_local_ip_for_client(client_ip):
     try:
