@@ -36,8 +36,7 @@ if IS_WINDOWS:
     # Detect if running from PyInstaller
     if getattr(sys, 'frozen', False):
         # Running as compiled executable
-        base_path = sys.executable
-        base_dir = os.path.dirname(base_path)
+        base_dir = sys._MEIPASS
     else:
         # Running from source
         base_dir = os.path.dirname(__file__)
