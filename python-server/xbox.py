@@ -32,8 +32,18 @@ uinput_devices = {}
 if IS_WINDOWS:
     # Windows vJoy setup
     is_64bits = struct.calcsize("P") * 8 == 64
-    dll_path_64 = './vJoy/x64/vJoyInterface.dll'
-    dll_path_32 = './vJoy/x86/vJoyInterface.dll'
+    
+    # Detect if running from PyInstaller
+    if getattr(sys, 'frozen', False):
+        # Running as compiled executable
+        base_path = sys.executable
+        base_dir = os.path.dirname(base_path)
+    else:
+        # Running from source
+        base_dir = os.path.dirname(__file__)
+    
+    dll_path_64 = os.path.join(base_dir, 'vJoy', 'x64', 'vJoyInterface.dll')
+    dll_path_32 = os.path.join(base_dir, 'vJoy', 'x86', 'vJoyInterface.dll')
     dll_path = dll_path_64 if is_64bits else dll_path_32
 
     if not os.path.isfile(dll_path):

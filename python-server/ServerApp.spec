@@ -5,7 +5,7 @@ a = Analysis(
     ['ServerApp.py'],
     pathex=[],
     binaries=[],
-    datas=[('azure.tcl', '.'), ('minimal.ico', '.'), ('theme', 'theme'), ('vJoy', 'vJoy'), ('pylmusharedmemory', 'pylmusharedmemory')],
+    datas=[('azure.tcl', '.'), ('app_icon.ico', '.'), ('theme', 'theme'), ('vJoy', 'vJoy'), ('pylmusharedmemory', 'pylmusharedmemory')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['minimal.ico'],
+    icon=['app_icon.ico'],
 )
