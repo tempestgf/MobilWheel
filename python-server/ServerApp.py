@@ -107,7 +107,7 @@ class ServerApp(QMainWindow):
             # Set taskbar icon on Windows
             if sys.platform == 'win32':
                 import ctypes
-                myappid = 'geneon.mobilewheel.server.1' # arbitrary string
+                myappid = 'geneon.mobilwheel.server.1' # arbitrary string
                 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
         self.signals = WorkerSignals()
@@ -123,7 +123,7 @@ class ServerApp(QMainWindow):
         self.telemetry_connected = False
         self.telemetry_auto_detect_active = False
 
-        self.settings = QSettings("Geneon", "MobileWheelServer")
+        self.settings = QSettings("Geneon", "MobilWheelServer")
 
         # Load Custom Font
         font_path = os.path.join(self.base_path, "museo_moderno.ttf")
@@ -609,7 +609,7 @@ class ServerApp(QMainWindow):
             return False
         import winreg as reg
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        app_name = "MobileWheelServer"
+        app_name = "MobilWheelServer"
         try:
             key = reg.OpenKey(reg.HKEY_CURRENT_USER, key_path, 0, reg.KEY_READ)
             value, _ = reg.QueryValueEx(key, app_name)
@@ -626,7 +626,7 @@ class ServerApp(QMainWindow):
             return
         import winreg as reg
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        app_name = "MobileWheelServer"
+        app_name = "MobilWheelServer"
         
         if getattr(sys, 'frozen', False):
             command = f'"{sys.executable}"'

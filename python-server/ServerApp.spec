@@ -5,7 +5,7 @@ a = Analysis(
     ['ServerApp.py'],
     pathex=[],
     binaries=[],
-    datas=[('azure.tcl', '.'), ('minimal.ico', '.'), ('theme', 'theme'), ('vJoyInterface.dll', '.'), ('vXboxInterface-x64', 'vXboxInterface-x64'), ('vXboxInterface-x86', 'vXboxInterface-x86')],
+    datas=[('azure.tcl', '.'), ('minimal.ico', '.'), ('theme', 'theme'), ('vJoy', 'vJoy'), ('pylmusharedmemory', 'pylmusharedmemory')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

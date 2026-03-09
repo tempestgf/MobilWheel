@@ -159,7 +159,7 @@ xml_content = """<?xml version="1.0" encoding="utf-8"?>
 
 </androidx.constraintlayout.widget.ConstraintLayout>"""
 
-target_path = r"c:\Users\Tempestgf\Coding\MobileWheel\android-client\app\src\main\res\layout\activity_main_menu.xml"
+target_path = r"c:\Users\Tempestgf\Coding\MobilWheel\android-client\app\src\main\res\layout\activity_main_menu.xml"
 
 # Force write
 try:
@@ -179,6 +179,6 @@ with open(target_path, "r", encoding="utf-8") as f:
 
 """
 
-script_path = r"c:\Users\Tempestgf\Coding\MobileWheel\apply_final_design.py"
+script_path = r"c:\Users\Tempestgf\Coding\MobilWheel\apply_final_design.py"
 with open(script_path, "w", encoding="utf-8") as f:
     f.write(content)

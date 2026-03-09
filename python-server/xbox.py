@@ -153,7 +153,7 @@ def _acquire_vjd_linux(device_id):
             ],
         }
         
-        device = UInput(cap, name=f'MobileWheel-{device_id}', version=0x1)
+        device = UInput(cap, name=f'MobilWheel-{device_id}', version=0x1)
         uinput_devices[device_id] = {
             'device': device,
             'buttons': {},
