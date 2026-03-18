@@ -3,8 +3,9 @@ An app that simulates your phone as a steering wheel for PC.
 
 ## Downloads
 
-- **Python Server** - [![Release python-server](https://img.shields.io/badge/Release-v1.0.1-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
-- **Android Client** - [![Release android-client](https://img.shields.io/badge/Release-v1.0.1-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/android-v1.0.1)
+- **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.1-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
+
+⚠️ **Note:** Both the Python Server and the Android Client APK are available inside a single merged GitHub Release now. If you want to download them separately, please visit our [Official Website](https://mobilwheel.com/#download).
 
 ## Features
 
@@ -32,19 +33,26 @@ Advanced features include real-time telemetry integration with popular racing si
 
 # Android Client
 
-[![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.1-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/android-v1.0.1)
+[![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.1-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
 
 ### Installation
 
-1. Download `app-release-unsigned.apk` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/android-v1.0.1) or directly from the [website](https://mobilwheel.com/update/MobileWheelClient-1.0.1.apk).
+1. Download `MobileWheelClient-1.0.1.apk` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1) or directly from the [website](https://mobilwheel.com/#download).
 2. Transfer the APK to your Android device.
 3. Install the APK (you may need to enable "Unknown sources" in your device settings).
 4. Launch the app and connect to your Python server. Both the Server and the App include an automatic update system to stay always on the latest version.
 
 ### Menu
-The main menu of the application provides a clean and user-friendly interface where users can easily navigate the core functionalities.
-
+The main menu of the application provides a clean and user-friendly interface where users can easily navigate the core functionalities. It features a Floating Action Button (FAB) at the bottom corner that automatically checks the latest updates available via the OTA mechanism and starts a direct download of the latest APK version.
 ![AndroidClient](images/Menu.png)
+
+### Dashboard
+
+MobilWheel introduces a complete live telemetry dashboard tailored for racing simulation directly on your phone:
+- **Rev Counter & Speed:** Advanced arc visualizer for extreme precision (RPM) and real-time speed.
+- **Pedal Pressure:** Real-time visual feedback of Throttle and Brake percentage values, ensuring accurate execution around tight corners.
+- **Race Data:** Position in race, Gear, RPM values, and remaining fuel levels pulled via real-time shared memory buffer from PC games.
+![Dashboard](images/dashboard.png)
 
 ### Wheel
 
@@ -96,3 +104,4 @@ The telemetry system provides drivers with essential real-time information:
 ### How It Works
 
 The Python server continuously reads telemetry data from the racing simulator through shared memory buffers or network protocols. This data is processed and sent to your Android device in real-time, updating the mobile display with current race conditions and vehicle performance metrics. The telemetry dashboard allows drivers to monitor critical information without taking their eyes off the road or simulator screen.
+
