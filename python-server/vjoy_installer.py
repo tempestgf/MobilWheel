@@ -139,8 +139,14 @@ class VjoyInstaller:
         for attempt in range(1, RETRY_ATTEMPTS + 1):
             try:
                 logger.debug(f"Intento de descarga {attempt}/{RETRY_ATTEMPTS}")
-                
-# Usar urlopen para poder usar req y reportar progreso
+
+                # Crear request con headers
+                req = urllib.request.Request(
+                    VJOY_DOWNLOAD_URL, 
+                    headers={'User-Agent': 'Mobile-Wheel-Server/1.0'}
+                )
+
+                # Usar urlopen para poder usar req y reportar progreso
                 with urllib.request.urlopen(req) as response, open(zip_path, 'wb') as out_file:
                     total_size = int(response.getheader('Content-Length', 0))
                     block_size = max(4096, total_size // 100) if total_size else 8192

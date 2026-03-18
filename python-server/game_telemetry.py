@@ -289,7 +289,7 @@ class ACTelemetryReader:
     Reads physics, graphics, and static to provide full Telemetry.
     """
     PHYSICS_MAP_NAME = r"Local\acpmf_physics"
-    GRAPHIC_MAP_NAME = r"Local\acpmf_graphic"
+    GRAPHIC_MAP_NAME = r"Local\acpmf_graphics"
     STATIC_MAP_NAME = r"Local\acpmf_static"
 
     def __init__(self):
@@ -375,9 +375,9 @@ class ACTelemetryReader:
                 tyre_dirty_level=tuple(phys.tyreDirtyLevel),
                 tyre_core_temperature=tuple(phys.tyreCoreTemperature),
                 drs=phys.drs,
-                tc=float(graph.TC),
+                tc=float(graph.TC) if graph.TC > 0 or graph.ABS > 0 else phys.tc,
                 pitch=phys.pitch,
-                abs=float(graph.ABS),
+                abs=float(graph.ABS) if graph.TC > 0 or graph.ABS > 0 else phys.abs,
                 clutch=phys.clutch,
                 brake_temp=tuple(phys.brakeTemp),
                 water_temp=phys.waterTemp,

@@ -1,0 +1,1 @@
+python ServerApp.py > error2.log 2>&1
