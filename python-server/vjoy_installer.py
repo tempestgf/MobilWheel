@@ -102,6 +102,13 @@ class VjoyInstaller:
     
     def vjoy_path_exists(self):
         """Verifica si vJoy está descargado localmente"""
+        # Buscar el instalador unificado primero en vjoy_folder
+        exe_files = list(self.vjoy_folder.glob("*.exe"))
+        if exe_files:
+            self.installed_path = exe_files[0]
+            logger.info(f"✓ vJoy encontrado en: {self.installed_path}")
+            return True
+            
         arch_folder = self.vjoy_folder / self.architecture
         if arch_folder.exists():
             exe_files = list(arch_folder.glob("*.exe"))
@@ -291,12 +298,16 @@ class VjoyInstaller:
             
             # Re-ejecutar con derechos de administrador
             try:
-                ctypes.windll.shell.ShellExecuteEx(
-                    lpVerb='runas',
-                    lpFile=str(self.installed_path),
-                    lpParameters='/S',  # Instalación silenciosa
-                    nShow=1
+                result = ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "runas",
+                    str(self.installed_path),
+                    "/S",  # Instalación silenciosa
+                    None,
+                    1
                 )
+                if result <= 32:
+                    raise Exception(f"ShellExecuteW failed with code {result}")
                 logger.info("✓ Instalador iniciado con privilegios de administrador")
                 return True
             except Exception as e:
