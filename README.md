@@ -5,7 +5,7 @@ An app that simulates your phone as a steering wheel for PC.
 
 - **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.1-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
 
-⚠️ **Note:** Both the Python Server and the Android Client APK are available inside a single merged GitHub Release now. If you want to download them separately, please visit our [Official Website](https://mobilwheel.com/#download).
+**Note:** Both the Python Server and the Android Client APK are available inside a single merged GitHub Release now. If you want to download them separately, please visit our [Official Website](https://mobilwheel.com/#download).
 
 ## Features
 
