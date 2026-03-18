@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', stre
 import xbox as server_module
 from app_version import APP_VERSION
 from updater import AppUpdater, UpdateError
+from vjoy_bootstrap import check_and_setup_vjoy
 
 try:
     from game_telemetry import GameTelemetryReader, GamePhysics
@@ -140,6 +141,9 @@ class ServerApp(QMainWindow):
 
         if TELEMETRY_AVAILABLE:
             self.start_telemetry_auto_detect()
+
+        # Check and setup vJoy if needed
+        QTimer.singleShot(100, lambda: check_and_setup_vjoy(self, only_check=False))
 
         # Auto-start server if setting is enabled
         if self.settings.value("auto_start_server", False, type=bool):

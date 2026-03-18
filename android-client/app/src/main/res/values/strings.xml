@@ -7,6 +7,7 @@
     <string name="main_menu_title">MOBILE WHEEL</string>
     <string name="main_menu_subtitle">Virtual Controller Interface</string>
     <string name="button_start_engine">START ENGINE</string>
+    <string name="button_dashboard">DASHBOARD</string>
     <string name="button_settings">SETTINGS</string>
     <string name="button_about">About</string>
     <string name="button_left_top">Left Top Button</string>
@@ -18,6 +19,15 @@
         <item>Screen faces on top</item>
         <item>Screen faces on your body</item>
     </string-array>
+    
+    <string name="title_connected">CONNECTED</string>
+    <string name="title_offline">OFFLINE</string>
+    <string name="about_link_discord">Discord</string>
+    <string name="about_link_github">GitHub</string>
+    <string name="about_link_web">Web</string>
+    <string name="about_url_discord">https://discord.gg/XyxkZkay</string>
+    <string name="about_url_github">https://github.com/tempestgf/mobilwheel</string>
+    <string name="about_url_web">https://mobilwheel.com</string>
 </resources>
 
 

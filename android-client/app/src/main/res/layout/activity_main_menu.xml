@@ -111,7 +111,7 @@
             android:id="@+id/button_start"
             android:layout_width="260dp"
             android:layout_height="64dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/geneon_button"
             app:backgroundTint="@null"
             android:elevation="12dp"
@@ -123,6 +123,23 @@
             android:textStyle="italic"
             android:letterSpacing="0.05"
             android:stateListAnimator="@null" />
+
+        <Button
+            android:id="@+id/button_dashboard"
+            android:layout_width="260dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/geneon_button_secondary"
+            app:backgroundTint="@null"
+            android:elevation="0dp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:stateListAnimator="@null"
+            android:text="@string/button_dashboard"
+            android:textAllCaps="true"
+            android:textColor="@color/geneon_white"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/button_settings"

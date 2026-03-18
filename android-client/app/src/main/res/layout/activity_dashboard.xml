@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:keepScreenOn="true"
+    android:padding="8dp">
+
+    <!-- Top Info Row: Battery, Wifi, Time -->
+    <LinearLayout
+        android:id="@+id/topBarInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <TextView android:id="@+id/wifiStatusText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PING" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginEnd="8dp" android:fontFamily="monospace"/>
+        <TextView android:id="@+id/batteryStatusText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BAT" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginEnd="8dp" android:fontFamily="monospace"/>
+        <TextView android:id="@+id/timeStatusText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="00:00" android:textColor="#FF6D00" android:textSize="12sp" android:fontFamily="monospace"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rpmContainer"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:background="#121212"
+        android:gravity="center_vertical"
+        android:padding="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBarInfo">
+        
+        <TextView
+            android:id="@+id/rpmIndicator"
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:text="0 RPM"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:gravity="center_vertical|start" />
+
+        <LinearLayout
+            android:id="@+id/rpmLedsContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.32" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.68" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.82" />
+
+    <!-- CENTER PANEL -->
+    <LinearLayout
+        android:id="@+id/centerWrapper"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_margin="8dp"
+        app:layout_constraintStart_toStartOf="@id/glLeft"
+        app:layout_constraintEnd_toEndOf="@id/glRight"
+        app:layout_constraintTop_toBottomOf="@id/rpmContainer"
+        app:layout_constraintBottom_toTopOf="@id/glBottom">
+
+        <!-- DELTA -->
+        <TextView
+            android:id="@+id/tvDelta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="-0.000"
+            android:textColor="#000000"
+            android:background="@drawable/bg_panel_filled_orange"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:padding="6dp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- GEAR & SPEED PANEL -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_panel_border_orange">
+            
+            <com.tempestgf.steeringwheel.TrackMapView
+                android:id="@+id/trackMapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.4"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+                                        <TextView
+                  android:id="@+id/gearIndicatorView"
+                  android:layout_width="wrap_content"
+                  android:layout_height="0dp"
+                  android:layout_weight="1"
+                  android:text="N"
+                  android:textColor="#FFFFFF"
+                  android:textSize="120sp"
+                  android:textStyle="bold"
+                  android:fontFamily="sans-serif-condensed"
+                  android:includeFontPadding="false"
+                  android:gravity="bottom|center_horizontal"
+                  app:autoSizeTextType="uniform"
+                  app:autoSizeMinTextSize="60sp"
+                  app:autoSizeMaxTextSize="140sp"
+                  app:autoSizeStepGranularity="4sp"
+                  app:layout_constraintBottom_toTopOf="@id/speedValueView"
+                  app:layout_constraintEnd_toEndOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintTop_toTopOf="parent"
+                  app:layout_constraintVertical_chainStyle="packed" />
+
+              <TextView
+                  android:id="@+id/speedValueView"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="000"
+                  android:textColor="#FF6D00"
+                  android:textSize="40sp"
+                  android:textStyle="bold"
+                  android:fontFamily="monospace"
+                  android:paddingBottom="8dp"
+                  android:includeFontPadding="false"
+                  app:layout_constraintBottom_toBottomOf="parent"
+                  app:layout_constraintEnd_toEndOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintTop_toBottomOf="@+id/gearIndicatorView" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/leftPanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_margin="8dp"
+        android:background="@drawable/bg_panel_border_orange"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/glLeft"
+        app:layout_constraintTop_toBottomOf="@id/rpmContainer"
+        app:layout_constraintBottom_toTopOf="@id/glBottom">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TIRES"
+            android:textColor="#FF6D00"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="4dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvTyrePressFL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27.6" android:textColor="#FFFFFF" android:textSize="32sp" android:fontFamily="monospace" android:textStyle="bold" app:autoSizeTextType="uniform" app:autoSizeMaxTextSize="32sp"/>
+                <TextView android:id="@+id/tvTyreFL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="82" android:textColor="#888" android:textSize="18sp" android:fontFamily="monospace" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvTyrePressFR" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27.8" android:textColor="#FFFFFF" android:textSize="32sp" android:fontFamily="monospace" android:textStyle="bold" app:autoSizeTextType="uniform" app:autoSizeMaxTextSize="32sp"/>
+                <TextView android:id="@+id/tvTyreFR" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="82" android:textColor="#888" android:textSize="18sp" android:fontFamily="monospace" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FF6D00" android:layout_marginVertical="8dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvTyrePressRL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27.7" android:textColor="#FFFFFF" android:textSize="32sp" android:fontFamily="monospace" android:textStyle="bold" app:autoSizeTextType="uniform" app:autoSizeMaxTextSize="32sp"/>
+                <TextView android:id="@+id/tvTyreRL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="85" android:textColor="#888" android:textSize="18sp" android:fontFamily="monospace" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvTyrePressRR" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="27.9" android:textColor="#FFFFFF" android:textSize="32sp" android:fontFamily="monospace" android:textStyle="bold" app:autoSizeTextType="uniform" app:autoSizeMaxTextSize="32sp"/>
+                <TextView android:id="@+id/tvTyreRR" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="85" android:textColor="#888" android:textSize="18sp" android:fontFamily="monospace" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+        
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WATER TEMP " android:textColor="#888" android:textSize="12sp" android:fontFamily="monospace"/>
+            <TextView android:id="@+id/tvWaterTemp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="90" android:textColor="#FF6D00" android:textSize="16sp" android:textStyle="bold" android:fontFamily="monospace"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rightPanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_margin="8dp"
+        app:layout_constraintStart_toEndOf="@id/glRight"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rpmContainer"
+        app:layout_constraintBottom_toTopOf="@id/glBottom">
+
+        <!-- Top Block: Position & Flag -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_panel_border_orange"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_weight="1" android:gravity="center">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="POS" android:textColor="#FF6D00" android:textSize="14sp" android:fontFamily="monospace"/>
+                <TextView android:id="@+id/tvPosition" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="P1" android:textColor="#FFFFFF" android:textSize="26sp" android:fontFamily="monospace" android:textStyle="bold"/>
+            </LinearLayout>
+            <TextView android:id="@+id/tvFlagStrip" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_weight="1" android:text="GREEN" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" android:background="#00FF00" android:gravity="center" android:fontFamily="monospace" android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+                        <!-- Lap Times -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_panel_border_orange"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical">
+
+            <TextView 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="LAP TIME" 
+                android:textColor="#FF6D00" 
+                android:textSize="12sp" 
+                android:fontFamily="monospace"/>
+
+            <TextView 
+                android:id="@+id/tvLapTime"
+                android:layout_width="match_parent" 
+                android:layout_height="0dp"
+                android:layout_weight="1" 
+                android:gravity="center_vertical"
+                android:text="--:--.---" 
+                android:textColor="#FFFFFF" 
+                android:textSize="32sp"
+                android:textStyle="bold" 
+                android:fontFamily="monospace"
+                app:autoSizeTextType="uniform" 
+                app:autoSizeMinTextSize="18sp" 
+                app:autoSizeMaxTextSize="36sp" 
+                app:autoSizeStepGranularity="2sp"/>
+
+            <View 
+                android:layout_width="match_parent" 
+                android:layout_height="1dp" 
+                android:background="#33FF6D00" 
+                android:layout_marginVertical="8dp"/>
+
+            <TextView 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="BEST LAP" 
+                android:textColor="#FF6D00" 
+                android:textSize="12sp" 
+                android:fontFamily="monospace"/>
+
+            <TextView 
+                android:id="@+id/tvBestLap"
+                android:layout_width="match_parent" 
+                android:layout_height="0dp"
+                android:layout_weight="1" 
+                android:gravity="center_vertical"
+                android:text="--:--.---" 
+                android:textColor="#FFFFFF" 
+                android:textSize="32sp"
+                android:textStyle="bold" 
+                android:fontFamily="monospace"
+                app:autoSizeTextType="uniform" 
+                app:autoSizeMinTextSize="18sp" 
+                app:autoSizeMaxTextSize="36sp" 
+                app:autoSizeStepGranularity="2sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_panel_border_orange"
+            android:padding="8dp"
+            android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FUEL: " android:textColor="#888" android:textSize="14sp" android:fontFamily="monospace"/>
+            <TextView android:id="@+id/tvFuel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="45.2 L" android:textColor="#FF6D00" android:textSize="20sp" android:textStyle="bold" android:fontFamily="monospace"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomPanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/glBottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
+
+        <LinearLayout android:id="@+id/indicatorTC" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@drawable/bg_panel_border_orange" android:orientation="vertical" android:gravity="center" android:layout_marginEnd="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TC" android:textColor="#FF6D00" android:textSize="12sp" android:fontFamily="monospace" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvTC" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="32sp" android:textStyle="bold" android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/indicatorABS" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@drawable/bg_panel_border_orange" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ABS" android:textColor="#FF6D00" android:textSize="12sp" android:fontFamily="monospace" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvABS" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="32sp" android:textStyle="bold" android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1.2" android:background="@drawable/bg_panel_border_orange" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BB" android:textColor="#FF6D00" android:textSize="12sp" android:fontFamily="monospace" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvBrakeBias" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="62.2" android:textColor="#FFFFFF" android:textSize="32sp" android:textStyle="bold" android:fontFamily="monospace"/>
+        </LinearLayout>
+        
+        <LinearLayout android:id="@+id/indicatorDRS" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@drawable/bg_panel_border_orange" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DRS" android:textColor="#FF6D00" android:textSize="12sp" android:fontFamily="monospace" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvDRS" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OFF" android:textColor="#888" android:textSize="24sp" android:textStyle="bold" android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1.5" android:background="@drawable/bg_panel_border_orange" android:orientation="vertical" android:gravity="center" android:layout_marginStart="4dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <View android:id="@+id/connectionDot" android:layout_width="12dp" android:layout_height="12dp" android:background="@drawable/cockpit_dot_red" android:layout_marginEnd="6dp"/>
+                <TextView android:id="@+id/connectionLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OFFLINE" android:textColor="#FFFF6B6B" android:textSize="16sp" android:textStyle="bold" android:fontFamily="monospace"/>
+            </LinearLayout>
+            <TextView android:id="@+id/ipAddressDisplay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="192.168.x.x" android:textColor="#888" android:textSize="12sp" android:fontFamily="monospace" android:layout_marginTop="4dp"/>
+        </LinearLayout>
+        
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+

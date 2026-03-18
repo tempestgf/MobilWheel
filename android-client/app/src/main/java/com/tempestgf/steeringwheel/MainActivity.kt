@@ -58,6 +58,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val dashboardButton: Button = findViewById(R.id.button_dashboard)
+        dashboardButton.setOnClickListener {
+            // Lanzar la actividad de dashboard
+            val intent = Intent(this, DashboardActivity::class.java)
+            startActivity(intent)
+        }
+
         // Otros botones del menú
         val settingsButton: Button = findViewById(R.id.button_settings)
         settingsButton.setOnClickListener {

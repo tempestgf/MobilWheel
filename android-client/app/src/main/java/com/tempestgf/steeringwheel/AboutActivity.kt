@@ -1,9 +1,11 @@
 package com.tempestgf.steeringwheel
 
+import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
@@ -56,6 +58,26 @@ class AboutActivity : AppCompatActivity() {
             finish()  // Cierra la actividad y vuelve al menú principal
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
+
+        // Configuración de enlaces sociales/web
+        val discordLink: LinearLayout = findViewById(R.id.link_discord)
+        val githubLink: LinearLayout = findViewById(R.id.link_github)
+        val webLink: LinearLayout = findViewById(R.id.link_web)
+
+        discordLink.setOnClickListener {
+            openExternalUrl(getString(R.string.about_url_discord))
+        }
+        githubLink.setOnClickListener {
+            openExternalUrl(getString(R.string.about_url_github))
+        }
+        webLink.setOnClickListener {
+            openExternalUrl(getString(R.string.about_url_web))
+        }
+    }
+
+    private fun openExternalUrl(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        startActivity(intent)
     }
 
     override fun onResume() {

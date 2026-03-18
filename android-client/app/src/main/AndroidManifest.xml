@@ -42,6 +42,7 @@
         <!-- Otras actividades -->
         <activity android:name="com.tempestgf.steeringwheel.AboutActivity" android:screenOrientation="landscape" />
         <activity android:name=".SteeringWheelActivity" android:screenOrientation="landscape" />
+        <activity android:name=".DashboardActivity" android:screenOrientation="landscape" />
         <activity android:name="com.tempestgf.steeringwheel.SettingsActivity" android:screenOrientation="landscape" />
 
         <!-- Servicio -->
