@@ -11,7 +11,6 @@
 		A10002 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002 /* MainMenuView.swift */; };
 		A10003 /* WheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003 /* WheelView.swift */; };
 		A10004 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* SettingsView.swift */; };
-		A10005 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005 /* ConnectView.swift */; };
 		A10006 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006 /* ConnectionManager.swift */; };
 		A10007 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007 /* MotionManager.swift */; };
 		A10008 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* SettingsManager.swift */; };
@@ -26,7 +25,6 @@
 		B10002 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		B10003 /* WheelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WheelView.swift; sourceTree = "<group>"; };
 		B10004 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		B10005 /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		B10006 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		B10007 /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
 		B10008 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
@@ -76,7 +74,6 @@
 				B10002 /* MainMenuView.swift */,
 				B10003 /* WheelView.swift */,
 				B10004 /* SettingsView.swift */,
-				B10005 /* ConnectView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -182,7 +179,6 @@
 				A10002 /* MainMenuView.swift in Sources */,
 				A10003 /* WheelView.swift in Sources */,
 				A10004 /* SettingsView.swift in Sources */,
-				A10005 /* ConnectView.swift in Sources */,
 				A10006 /* ConnectionManager.swift in Sources */,
 				A10007 /* MotionManager.swift in Sources */,
 				A10008 /* SettingsManager.swift in Sources */,
