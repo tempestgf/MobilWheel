@@ -802,9 +802,9 @@ class ServerApp(QMainWindow):
                     "<p>Permite usar tu dispositivo móvil como un volante para juegos en PC.</p>"
                     "<p>© 2026 MobileWheel</p>"
                     "<p><b>Enlaces de interés:</b><br>"
-                    "<a href='https://www.mobilwheel.com/'>🌐 Sitio Web</a><br>"
-                    "<a href='https://discord.gg/T9kJcxWD'>💬 Discord</a><br>"
-                    "<a href='https://github.com/tempestgf/MobilWheel'>💻 GitHub</a></p>")
+                    "<a style='color: #4da6ff; text-decoration: none;' href='https://www.mobilwheel.com/'>🌐 Sitio Web</a><br>"
+                    "<a style='color: #4da6ff; text-decoration: none;' href='https://discord.gg/T9kJcxWD'>💬 Discord</a><br>"
+                    "<a style='color: #4da6ff; text-decoration: none;' href='https://github.com/tempestgf/MobilWheel'>💻 GitHub</a></p>")
         msg.setTextFormat(Qt.RichText)
         msg.setTextInteractionFlags(Qt.TextBrowserInteraction)
         msg.exec_()
