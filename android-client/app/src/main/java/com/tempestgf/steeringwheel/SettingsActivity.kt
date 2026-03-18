@@ -25,10 +25,11 @@ class SettingsActivity : AppCompatActivity() {
         val switchMuteVideo: android.widget.Switch = findViewById(R.id.switch_mute_video)
         val switchTelemetry: android.widget.Switch = findViewById(R.id.switch_telemetry)
         val backButton: android.widget.Button = findViewById(R.id.button_back)
+        val resetDefaultsButton: android.widget.Button = findViewById(R.id.button_reset_defaults)
 
         // Cargar valores guardados
         val sharedPrefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
-        val savedAngle = sharedPrefs.getInt("steering_angle", 180)
+        val savedAngle = sharedPrefs.getInt("steering_angle", 365)
         val savedSwipeThreshold = sharedPrefs.getFloat(PREF_SWIPE_THRESHOLD, DEFAULT_SWIPE_THRESHOLD)
         val savedClickTimeLimit = sharedPrefs.getFloat(PREF_CLICK_TIME_LIMIT, DEFAULT_CLICK_TIME_LIMIT)
         val savedAcceleratorSensitivity = sharedPrefs.getFloat(PREF_ACCELERATOR_SENSITIVITY, DEFAULT_ACCELERATOR_SENSITIVITY)
@@ -128,6 +129,36 @@ class SettingsActivity : AppCompatActivity() {
         backButton.setOnClickListener {
             finish()
         }
+
+        // Manejar botón de reset
+        resetDefaultsButton.setOnClickListener {
+            // Restore actual values
+            steeringAngle.progress = 365
+            steeringAngleValue.text = "365°"
+            saveSteeringAngle(365)
+
+            swipeThreshold.progress = (DEFAULT_SWIPE_THRESHOLD * 10).toInt()
+            swipeThresholdValue.text = String.format("%.1f mm", DEFAULT_SWIPE_THRESHOLD)
+            saveSwipeThreshold(DEFAULT_SWIPE_THRESHOLD)
+
+            clickTimeLimit.progress = (DEFAULT_CLICK_TIME_LIMIT * 100).toInt()
+            clickTimeLimitValue.text = String.format("%.2f sec", DEFAULT_CLICK_TIME_LIMIT)
+            saveClickTimeLimit(DEFAULT_CLICK_TIME_LIMIT)
+
+            acceleratorSensitivity.progress = (DEFAULT_ACCELERATOR_SENSITIVITY * 10).toInt()
+            acceleratorValue.text = String.format("%.1f", DEFAULT_ACCELERATOR_SENSITIVITY)
+            saveAcceleratorSensitivity(DEFAULT_ACCELERATOR_SENSITIVITY)
+
+            brakeSensitivity.progress = (DEFAULT_BRAKE_SENSITIVITY * 10).toInt()
+            brakeValue.text = String.format("%.1f", DEFAULT_BRAKE_SENSITIVITY)
+            saveBrakeSensitivity(DEFAULT_BRAKE_SENSITIVITY)
+
+            switchMuteVideo.isChecked = DEFAULT_MUTE_VIDEO
+            saveMuteVideo(DEFAULT_MUTE_VIDEO)
+
+            switchTelemetry.isChecked = DEFAULT_TELEMETRY_ENABLED
+            saveTelemetryEnabled(DEFAULT_TELEMETRY_ENABLED)
+        }
     }
 
     private fun saveSteeringAngle(angle: Int) {
@@ -198,8 +229,8 @@ class SettingsActivity : AppCompatActivity() {
         // Valores predeterminados
         const val DEFAULT_SWIPE_THRESHOLD = 4.0f // en mm
         const val DEFAULT_CLICK_TIME_LIMIT = 0.25f // en segundos
-        const val DEFAULT_ACCELERATOR_SENSITIVITY = 4.0f // sensibilidad predeterminada
-        const val DEFAULT_BRAKE_SENSITIVITY = 4.0f // sensibilidad predeterminada
+        const val DEFAULT_ACCELERATOR_SENSITIVITY = 0.3f // sensibilidad predeterminada
+        const val DEFAULT_BRAKE_SENSITIVITY = 0.3f // sensibilidad predeterminada
         const val DEFAULT_MUTE_VIDEO = true // muteado por defecto
         const val DEFAULT_TELEMETRY_ENABLED = true
     }

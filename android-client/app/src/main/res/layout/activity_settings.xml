@@ -314,19 +314,41 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <Button
-                android:id="@+id/button_back"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="@string/back_button"
-                android:textColor="@color/geneon_white"
-                android:background="@drawable/geneon_button_secondary"
-                android:paddingHorizontal="32dp"
-                android:fontFamily="sans-serif-condensed"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:stateListAnimator="@null"
-                android:elevation="0dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="16dp">
+
+                <Button
+                    android:id="@+id/button_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="@string/back_button"
+                    android:textColor="@color/geneon_white"
+                    android:background="@drawable/geneon_button_secondary"
+                    android:paddingHorizontal="32dp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:stateListAnimator="@null"
+                    android:elevation="0dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <Button
+                    android:id="@+id/button_reset_defaults"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="RESET DEFAULTS"
+                    android:textColor="@color/geneon_black"
+                    android:background="@drawable/geneon_button"
+                    android:paddingHorizontal="32dp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textStyle="bold"
+                    android:stateListAnimator="@null"
+                    android:elevation="0dp"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

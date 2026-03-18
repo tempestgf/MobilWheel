@@ -1013,7 +1013,7 @@ class SteeringWheelActivity : AppCompatActivity(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         val prefs = getSharedPreferences("steering_prefs", MODE_PRIVATE)
-        maxSteeringAngle        = prefs.getInt("steering_angle", 90).toFloat()
+        maxSteeringAngle        = prefs.getInt("steering_angle", 365).toFloat()
         accelerationSensitivity = prefs.getFloat(SettingsActivity.PREF_ACCELERATOR_SENSITIVITY, SettingsActivity.DEFAULT_ACCELERATOR_SENSITIVITY)
         brakeSensitivity        = prefs.getFloat(SettingsActivity.PREF_BRAKE_SENSITIVITY, SettingsActivity.DEFAULT_BRAKE_SENSITIVITY)
         clickTimeLimit          = prefs.getFloat(SettingsActivity.PREF_CLICK_TIME_LIMIT, SettingsActivity.DEFAULT_CLICK_TIME_LIMIT)
