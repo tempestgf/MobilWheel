@@ -796,10 +796,18 @@ class ServerApp(QMainWindow):
             QMessageBox.critical(self, "Error", f"Error iniciando instalador de vJoy: {e}")
 
     def show_about_dialog(self):
-        QMessageBox.about(self, "About Mobile Wheel Server",
-                          f"Mobile Wheel Server\nVersión {APP_VERSION}\n\n"
-                          "Permite usar tu dispositivo móvil como un volante para juegos en PC.\n"
-                          "© 2026 MobileWheel")
+        msg = QMessageBox(self)
+        msg.setWindowTitle("About Mobile Wheel Server")
+        msg.setText(f"<h3>Mobile Wheel Server</h3><p>Versión {APP_VERSION}</p>"
+                    "<p>Permite usar tu dispositivo móvil como un volante para juegos en PC.</p>"
+                    "<p>© 2026 MobileWheel</p>"
+                    "<p><b>Enlaces de interés:</b><br>"
+                    "<a href='https://www.mobilwheel.com/'>🌐 Sitio Web</a><br>"
+                    "<a href='https://discord.gg/T9kJcxWD'>💬 Discord</a><br>"
+                    "<a href='https://github.com/tempestgf/MobilWheel'>💻 GitHub</a></p>")
+        msg.setTextFormat(Qt.RichText)
+        msg.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        msg.exec_()
 
     def poll_logs(self):
         val = log_stream.getvalue()
