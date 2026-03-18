@@ -51,6 +51,18 @@ class AboutActivity : AppCompatActivity() {
         val footerText: TextView = findViewById(R.id.footer_text)
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         footerText.text = "© $currentYear Geneon"
+        
+        val appVersionText: TextView = findViewById(R.id.app_version)
+        try {
+            val pInfo = packageManager.getPackageInfo(packageName, 0)
+            appVersionText.text = "Versión " + pInfo.versionName
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        
+        appVersionText.setOnClickListener {
+            AppUpdater(this).checkForUpdates(manual = true)
+        }
 
         // Configuración del botón de regreso
         val backButton: Button = findViewById(R.id.button_back)

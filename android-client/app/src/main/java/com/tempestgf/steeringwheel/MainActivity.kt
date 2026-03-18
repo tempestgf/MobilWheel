@@ -78,6 +78,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
+
+        // Silent check for updates
+        AppUpdater(this).checkForUpdates(manual = false)
     }
 
     override fun onResume() {
