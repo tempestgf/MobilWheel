@@ -31,6 +31,21 @@ Advanced features include real-time telemetry integration with popular racing si
 
 
 
+# iOS Client
+
+[![Release iOS](https://img.shields.io/badge/Release-iOS--v1.0.1-lightgrey?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
+
+### Installation (Sideloading)
+
+Due to Apple's restrictions on app distribution outside the App Store, the iOS app `.ipa` must be installed using a computer and an Apple ID (Sideloading).
+
+1. Download `MobilWheel-unsigned.ipa` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1).
+2. Install via **[AltStore](https://altstore.io/)**: Install AltServer on your PC, trust your Apple ID, and install the `.ipa` onto your iPhone.
+3. *Alternative:* Use **[Sideloadly](https://sideloadly.io/)**: Connect your iPhone to your PC via USB, drag and drop the `.ipa`, log in with your Apple ID, and click Start.
+4. Go to **Settings > General > VPN & Device Management** on your iPhone and "Trust" your developer certificate.
+
+*(Note: Free Apple developer accounts must refresh sideloaded apps every 7 days).*
+
 # Android Client
 
 [![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.1-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
