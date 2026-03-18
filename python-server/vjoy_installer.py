@@ -140,14 +140,25 @@ class VjoyInstaller:
             try:
                 logger.debug(f"Intento de descarga {attempt}/{RETRY_ATTEMPTS}")
 
-                # Crear request con headers
-                req = urllib.request.Request(
-                    VJOY_DOWNLOAD_URL, 
-                    headers={'User-Agent': 'Mobile-Wheel-Server/1.0'}
-                )
+                # Opción 1: Powerhsell (fiable en Windows)
+                ps_command = f"Invoke-WebRequest -Uri '{VJOY_DOWNLOAD_URL}' -OutFile '{zip_path}' -UseBasicParsing"
+                try:
+                    subprocess.run(["powershell", "-Command", ps_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                    if zip_path.exists() and zip_path.stat().st_size > 1000000:
+                        file_size = zip_path.stat().st_size
+                        logger.info(f"✓ Descarga completada via PowerShell ({file_size / 1024 / 1024:.1f} MB)")
+                        if progress_callback:
+                            progress_callback(100)
+                        return zip_path
+                except Exception as ps_exc:
+                    logger.warning(f"PowerShell download falló, usando urllib: {ps_exc}")
 
-                # Usar urlopen para poder usar req y reportar progreso
-                with urllib.request.urlopen(req) as response, open(zip_path, 'wb') as out_file:
+                # Opción 2: urllib con opener (por si no funciona powershell)
+                opener = urllib.request.build_opener()
+                opener.addheaders = [('User-Agent', 'Mobile-Wheel-Server/1.0')]
+                urllib.request.install_opener(opener)
+
+                with urllib.request.urlopen(VJOY_DOWNLOAD_URL) as response, open(zip_path, 'wb') as out_file:
                     total_size = int(response.getheader('Content-Length', 0))
                     block_size = max(4096, total_size // 100) if total_size else 8192
                     downloaded = 0
@@ -185,7 +196,8 @@ class VjoyInstaller:
                     raise VjoyDownloadError(f"No se pudo descargar vJoy después de {RETRY_ATTEMPTS} intentos: {e}")
             
             except Exception as e:
-                logger.error(f"Error inesperado en descarga: {e}")
+                import traceback
+                logger.error(f"Error inesperado en descarga: {e}\n{traceback.format_exc()}")
                 raise VjoyDownloadError(f"Error descargando vJoy: {e}")
             
             finally:

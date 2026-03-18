@@ -24,11 +24,11 @@ class AppUpdater:
 
     def check_for_updates(self, timeout: int = 10) -> Dict:
         try:
-            req = urllib.request.Request(
-                self.manifest_url,
-                headers={"User-Agent": f"{APP_NAME}/{self.current_version}"},
-            )
-            with urllib.request.urlopen(req, timeout=timeout) as response:
+            opener = urllib.request.build_opener()
+            opener.addheaders = [("User-Agent", f"{APP_NAME}/{self.current_version}")]
+            urllib.request.install_opener(opener)
+            
+            with urllib.request.urlopen(self.manifest_url, timeout=timeout) as response:
                 payload = response.read().decode("utf-8")
 
             import json
@@ -58,11 +58,11 @@ class AppUpdater:
         target_file = updates_dir / filename
 
         try:
-            req = urllib.request.Request(
-                download_url,
-                headers={"User-Agent": f"{APP_NAME}/{self.current_version}"},
-            )
-            with urllib.request.urlopen(req, timeout=60) as response, open(target_file, "wb") as output:
+            opener = urllib.request.build_opener()
+            opener.addheaders = [("User-Agent", f"{APP_NAME}/{self.current_version}")]
+            urllib.request.install_opener(opener)
+            
+            with urllib.request.urlopen(download_url, timeout=60) as response, open(target_file, "wb") as output:
                 while True:
                     chunk = response.read(1024 * 256)
                     if not chunk:

@@ -35,6 +35,11 @@ class WorkerSignals(QObject):
     toggle_button = pyqtSignal(str)
     log_update = pyqtSignal(str)
     telemetry_update = pyqtSignal(object)
+    # Update related signals
+    update_manifest_ready = pyqtSignal(bool, dict)
+    update_check_error = pyqtSignal(bool, str)
+    update_downloaded = pyqtSignal(str)
+    update_download_error = pyqtSignal(str)
 
 # ── Racing stripe header widget ────────────────────────────────────────────
 class AccentStripe(QWidget):
@@ -109,6 +114,10 @@ class ServerApp(QMainWindow):
         self.signals.toggle_button.connect(self.toggle_button_check)
         self.signals.log_update.connect(self.append_log)
         self.signals.telemetry_update.connect(self.update_telemetry_ui)
+        self.signals.update_manifest_ready.connect(self._on_update_manifest)
+        self.signals.update_check_error.connect(self._on_update_check_error)
+        self.signals.update_downloaded.connect(self._on_update_downloaded)
+        self.signals.update_download_error.connect(self._on_update_download_error)
 
         self.server_thread = None
         self.server_running = threading.Event()
@@ -613,6 +622,8 @@ class ServerApp(QMainWindow):
     def _check_for_updates(self, interactive: bool):
         if self.update_in_progress:
             return
+            
+        self.update_in_progress = True
 
         if interactive:
             logging.info("Buscando actualizaciones manuales...")
@@ -628,14 +639,15 @@ class ServerApp(QMainWindow):
         try:
             info = self.updater.check_for_updates()
             logging.info(f"Manifest obtenido: version {info.get('version', '?')}")
-            QTimer.singleShot(0, lambda: self._on_update_manifest(interactive, info))
+            self.signals.update_manifest_ready.emit(interactive, info)
         except UpdateError as exc:
-            QTimer.singleShot(0, lambda: self._on_update_check_error(interactive, str(exc)))
+            self.signals.update_check_error.emit(interactive, str(exc))
         except Exception as exc:
             logging.error(f"Error checking updates: {exc}")
-            QTimer.singleShot(0, lambda: self._on_update_check_error(interactive, f"Error interno comprobando actualización: {str(exc)}"))
+            self.signals.update_check_error.emit(interactive, f"Error interno comprobando actualización: {str(exc)}")
 
     def _on_update_check_error(self, interactive: bool, message: str):
+        self.update_in_progress = False
         logging.warning(message)
         self.update_btn.setEnabled(True)
         self.update_btn.setText("⬇  UPDATE")
@@ -643,6 +655,7 @@ class ServerApp(QMainWindow):
             QMessageBox.warning(self, "Actualizacion", f"No se pudo comprobar actualizaciones.\n\n{message}")
 
     def _on_update_manifest(self, interactive: bool, info: dict):
+        self.update_in_progress = False
         self.update_btn.setEnabled(True)
         self.update_btn.setText("⬇  UPDATE")
 
@@ -708,9 +721,9 @@ class ServerApp(QMainWindow):
         try:
             logging.info(f"Descargando actualizacion {latest_version} desde {download_url}")
             installer_path = self.updater.download_update(download_url=download_url, expected_sha256=checksum)
-            QTimer.singleShot(0, lambda: self._on_update_downloaded(str(installer_path)))
+            self.signals.update_downloaded.emit(str(installer_path))
         except UpdateError as exc:
-            QTimer.singleShot(0, lambda: self._on_update_download_error(str(exc)))
+            self.signals.update_download_error.emit(str(exc))
 
     def _on_update_download_error(self, message: str):
         logging.error(message)
