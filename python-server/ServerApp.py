@@ -331,6 +331,28 @@ class ServerApp(QMainWindow):
         control_layout.addWidget(self.restart_btn, 1)
         control_layout.addWidget(self.update_btn, 1)
         inner.addLayout(control_layout)
+        
+        # Additional Controls
+        misc_layout = QHBoxLayout()
+        misc_layout.setSpacing(12)
+        
+        self.vjoy_btn = QPushButton("🎮  Install vJoy")
+        self.vjoy_btn.setObjectName("MiscBtn")
+        self.vjoy_btn.setCursor(Qt.PointingHandCursor)
+        self.vjoy_btn.setMinimumHeight(32)
+        self.vjoy_btn.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        self.vjoy_btn.clicked.connect(self.install_vjoy_manual)
+        
+        self.about_btn = QPushButton("ℹ️  About")
+        self.about_btn.setObjectName("MiscBtn")
+        self.about_btn.setCursor(Qt.PointingHandCursor)
+        self.about_btn.setMinimumHeight(32)
+        self.about_btn.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        self.about_btn.clicked.connect(self.show_about_dialog)
+        
+        misc_layout.addWidget(self.vjoy_btn)
+        misc_layout.addWidget(self.about_btn)
+        inner.addLayout(misc_layout)
 
         # ── TELEMETRY ─────────────────────────────────────────────────────
         if TELEMETRY_AVAILABLE:
@@ -749,6 +771,35 @@ class ServerApp(QMainWindow):
             QApplication.quit()
         except UpdateError as exc:
             QMessageBox.warning(self, "Actualizacion", f"No se pudo iniciar el instalador.\n\n{exc}")
+
+    def install_vjoy_manual(self):
+        try:
+            from vjoy_installer import VjoyInstaller
+            installer = VjoyInstaller()
+            if installer.is_vjoy_installed():
+                QMessageBox.information(self, "vJoy", "vJoy ya está instalado en el sistema.")
+                return
+
+            reply = QMessageBox.question(self, 'Instalar vJoy',
+                                         "vJoy no está instalado.\n¿Deseas descargar e instalar vJoy automáticamente? (Requiere permisos de administrador)",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if reply == QMessageBox.Yes:
+                # To not block UI entirely, at least notify the user. Ideally a thread, but for now simple block is fine if small.
+                # Actually download can take a while so it's best we don't freeze the whole app. We can just run it.
+                # But to keep simple, let's run it directly.
+                success = installer.setup_vjoy()
+                if success:
+                    QMessageBox.information(self, "vJoy", "vJoy se instaló correctamente.")
+                else:
+                    QMessageBox.warning(self, "vJoy", "Hubo un problema instalando vJoy. Revisa los logs.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error iniciando instalador de vJoy: {e}")
+
+    def show_about_dialog(self):
+        QMessageBox.about(self, "About Mobile Wheel Server",
+                          f"Mobile Wheel Server\nVersión {APP_VERSION}\n\n"
+                          "Permite usar tu dispositivo móvil como un volante para juegos en PC.\n"
+                          "© 2026 MobileWheel")
 
     def poll_logs(self):
         val = log_stream.getvalue()
