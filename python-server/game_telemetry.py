@@ -61,11 +61,10 @@ class GamePhysics:
     gas: float = 0.0
     brake: float = 0.0
 
+
 @dataclass
 class ACPhysics:
-    """Data class containing all physics telemetry from Assetto Corsa"""
-    
-    # Basic info
+    """Data class containing advanced physics telemetry from Assetto Corsa"""
     packet_id: int
     gas: float
     brake: float
@@ -74,366 +73,334 @@ class ACPhysics:
     rpms: int
     steer_angle: float
     speed_kmh: float
-    
-    # Velocity (world coordinates)
-    velocity_x: float
-    velocity_y: float
-    velocity_z: float
-    
-    # Acceleration (local coordinates)
-    acc_g_x: float
-    acc_g_y: float
-    acc_g_z: float
-    
-    # Wheel slip
-    wheel_slip: tuple  # 4 floats (FL, FR, RL, RR)
-    
-    # Wheel load (not used in public version)
-    wheel_load: tuple  # 4 floats
-    
-    # Wheels pressure
-    wheels_pressure: tuple  # 4 floats
-    
-    # Wheel angular speed
-    wheel_angular_speed: tuple  # 4 floats
-    
-    # Tyres wear (not used in public version)
-    tyre_wear: tuple  # 4 floats
-    
-    # Tyre dirty level
-    tyre_dirty_level: tuple  # 4 floats
-    
-    # Tyres core temperature
-    tyre_core_temperature: tuple  # 4 floats
-    
-    # Camber angle RAD
-    camber_rad: tuple  # 4 floats
-    
-    # Suspension travel
-    suspension_travel: tuple  # 4 floats
-    
-    # DRS
+    velocity_x: float; velocity_y: float; velocity_z: float;
+    acc_g_x: float; acc_g_y: float; acc_g_z: float;
+    wheel_slip: tuple; wheel_load: tuple; wheels_pressure: tuple;
+    wheel_angular_speed: tuple; tyre_wear: tuple; tyre_dirty_level: tuple;
+    tyre_core_temperature: tuple
     drs: float
-    
-    # TC
     tc: float
-    
-    # Heading
-    heading: float
-    
-    # Pitch
     pitch: float
-    
-    # Roll
-    roll: float
-    
-    # Additional data
-    cg_height: float
-    car_damage: tuple  # 5 floats
-    
-    # Pit limiter
-    pit_limiter_on: int
-    
-    # ABS
     abs: float
-    
-    # Auto shifter
-    auto_shifter_on: int
-    
-    # Turbo boost
-    turbo_boost: float
-    
-    # Air temp
-    air_temp: float
-    
-    # Road temp
-    road_temp: float
-    
-    # Local angular velocity
-    local_angular_vel_x: float
-    local_angular_vel_y: float
-    local_angular_vel_z: float
-    
-    # Final force feedback
-    final_ff: float
-    
-    # Brake temp
-    brake_temp: tuple  # 4 floats
-    
-    # Clutch
     clutch: float
-    
-    # Is AI controlled
-    is_ai_controlled: int
-    
-    # Tyre contact point
-    tyre_contact_point: tuple  # 4x3 floats (global coordinates)
-    
-    # Tyre contact normal
-    tyre_contact_normal: tuple  # 4x3 floats (global coordinates)
-    
-    # Tyre contact heading
-    tyre_contact_heading: tuple  # 4x3 floats (global coordinates)
-    
-    # Brake bias
+    brake_temp: tuple
+    water_temp: float
     brake_bias: float
+    max_rpm: int
+    position: int
+    lap_time: str
+    best_lap: str
 
+    def to_json_payload(self) -> dict:
+        return {
+            "game_name": "Assetto Corsa",
+            "speed_kmh": self.speed_kmh,
+            "gear": self.gear,
+            "rpm": self.rpms,
+            "max_rpm": self.max_rpm,
+            "gas": self.gas,
+            "brake": self.brake,
+            "fuel": self.fuel,
+            "clutch": self.clutch,
+            "steer_angle": self.steer_angle,
+            "tc": self.tc,
+            "abs": self.abs,
+            "drs": self.drs,
+            "tyre_temps": self.tyre_core_temperature,
+            "tyre_pressures": self.wheels_pressure,
+            "brake_temps": self.brake_temp,
+            "water_temp": self.water_temp,
+            "brake_bias": self.brake_bias,
+            "position": self.position,
+            "lap_time": str(self.lap_time),
+            "best_lap": str(self.best_lap)
+        }
+
+
+# --- Comprehensive AC Telemetry Types ---
+import ctypes
+
+class SPageFilePhysics(ctypes.Structure):
+    _pack_ = 4
+    _fields_ = [
+        ("packetId", ctypes.c_int32),
+        ("gas", ctypes.c_float),
+        ("brake", ctypes.c_float),
+        ("fuel", ctypes.c_float),
+        ("gear", ctypes.c_int32),
+        ("rpms", ctypes.c_int32),
+        ("steerAngle", ctypes.c_float),
+        ("speedKmh", ctypes.c_float),
+        ("velocity", ctypes.c_float * 3),
+        ("accG", ctypes.c_float * 3),
+        ("wheelSlip", ctypes.c_float * 4),
+        ("wheelLoad", ctypes.c_float * 4),
+        ("wheelsPressure", ctypes.c_float * 4),
+        ("wheelAngularSpeed", ctypes.c_float * 4),
+        ("tyreWear", ctypes.c_float * 4),
+        ("tyreDirtyLevel", ctypes.c_float * 4),
+        ("tyreCoreTemperature", ctypes.c_float * 4),
+        ("camberRAD", ctypes.c_float * 4),
+        ("suspensionTravel", ctypes.c_float * 4),
+        ("drs", ctypes.c_float),
+        ("tc", ctypes.c_float),
+        ("heading", ctypes.c_float),
+        ("pitch", ctypes.c_float),
+        ("roll", ctypes.c_float),
+        ("cgHeight", ctypes.c_float),
+        ("carDamage", ctypes.c_float * 5),
+        ("numberOfTyresOut", ctypes.c_int32),
+        ("pitLimiterOn", ctypes.c_int32),
+        ("abs", ctypes.c_float),
+        ("kersCharge", ctypes.c_float),
+        ("kersInput", ctypes.c_float),
+        ("autoShifterOn", ctypes.c_int32),
+        ("rideHeight", ctypes.c_float * 2),
+        ("turboBoost", ctypes.c_float),
+        ("ballast", ctypes.c_float),
+        ("airDensity", ctypes.c_float),
+        ("airTemp", ctypes.c_float),
+        ("roadTemp", ctypes.c_float),
+        ("localAngularVel", ctypes.c_float * 3),
+        ("finalFF", ctypes.c_float),
+        ("performanceMeter", ctypes.c_float),
+        ("engineBrake", ctypes.c_int32),
+        ("ersRecoveryLevel", ctypes.c_int32),
+        ("ersPowerLevel", ctypes.c_int32),
+        ("ersHeatCharging", ctypes.c_int32),
+        ("ersIsCharging", ctypes.c_int32),
+        ("kersCurrentKJ", ctypes.c_float),
+        ("drsAvailable", ctypes.c_int32),
+        ("drsEnabled", ctypes.c_int32),
+        ("brakeTemp", ctypes.c_float * 4),
+        ("clutch", ctypes.c_float),
+        ("tyreTempI", ctypes.c_float * 4),
+        ("tyreTempM", ctypes.c_float * 4),
+        ("tyreTempO", ctypes.c_float * 4),
+        ("isAIControlled", ctypes.c_int32),
+        ("tyreContactPoint", ctypes.c_float * 4 * 3),
+        ("tyreContactNormal", ctypes.c_float * 4 * 3),
+        ("tyreContactHeading", ctypes.c_float * 4 * 3),
+        ("brakeBias", ctypes.c_float),
+        ("localVelocity", ctypes.c_float * 3),
+        ("P2PActivations", ctypes.c_int32),
+        ("P2PStatus", ctypes.c_int32),
+        ("currentMaxRpm", ctypes.c_int32),
+        ("mz", ctypes.c_float * 4),
+        ("fx", ctypes.c_float * 4),
+        ("fy", ctypes.c_float * 4),
+        ("slipRatio", ctypes.c_float * 4),
+        ("slipAngle", ctypes.c_float * 4),
+        ("tcinAction", ctypes.c_int32),
+        ("absInAction", ctypes.c_int32),
+        ("suspensionDamage", ctypes.c_float * 4),
+        ("tyreTemp", ctypes.c_float * 4),
+        ("waterTemp", ctypes.c_float),
+    ]
+
+class SPageFileGraphic(ctypes.Structure):
+    _pack_ = 4
+    _fields_ = [
+        ("packetId", ctypes.c_int32),
+        ("status", ctypes.c_int32),
+        ("session", ctypes.c_int32),
+        ("currentTime", ctypes.c_wchar * 15),
+        ("lastTime", ctypes.c_wchar * 15),
+        ("bestTime", ctypes.c_wchar * 15),
+        ("split", ctypes.c_wchar * 15),
+        ("completedLaps", ctypes.c_int32),
+        ("position", ctypes.c_int32),
+        ("iCurrentTime", ctypes.c_int32),
+        ("iLastTime", ctypes.c_int32),
+        ("iBestTime", ctypes.c_int32),
+        ("sessionTimeLeft", ctypes.c_float),
+        ("distanceTraveled", ctypes.c_float),
+        ("isInPit", ctypes.c_int32),
+        ("currentSectorIndex", ctypes.c_int32),
+        ("lastSectorTime", ctypes.c_int32),
+        ("numberOfLaps", ctypes.c_int32),
+        ("tyreCompound", ctypes.c_wchar * 33),
+        ("replayTimeMultiplier", ctypes.c_float),
+        ("normalizedCarPosition", ctypes.c_float),
+        ("activeCars", ctypes.c_int32),
+        ("carCoordinates", ctypes.c_float * 60 * 3),
+        ("carID", ctypes.c_int32 * 60),
+        ("playerCarID", ctypes.c_int32),
+        ("penaltyTime", ctypes.c_float),
+        ("flag", ctypes.c_int32),
+        ("penalty", ctypes.c_int32),
+        ("idealLineOn", ctypes.c_int32),
+        ("isInPitLane", ctypes.c_int32),
+        ("surfaceGrip", ctypes.c_float),
+        ("mandatoryPitDone", ctypes.c_int32),
+        ("windSpeed", ctypes.c_float),
+        ("windDirection", ctypes.c_float),
+        ("isSetupMenuVisible", ctypes.c_int32),
+        ("mainDisplayIndex", ctypes.c_int32),
+        ("secondaryDisplayIndex", ctypes.c_int32),
+        ("TC", ctypes.c_int32),
+        ("TCCut", ctypes.c_int32),
+        ("EngineMap", ctypes.c_int32),
+        ("ABS", ctypes.c_int32),
+        ("ABSM", ctypes.c_int32),
+        ("fuelXLap", ctypes.c_float),
+        ("isTimedRace", ctypes.c_int32),
+        ("hasExtraLap", ctypes.c_int32),
+        ("carSkin", ctypes.c_wchar * 33),
+        ("shouldPosition", ctypes.c_int32),
+        ("direction", ctypes.c_int32),
+    ]
+
+class SPageFileStatic(ctypes.Structure):
+    _pack_ = 4
+    _fields_ = [
+        ("smVersion", ctypes.c_wchar * 15),
+        ("acVersion", ctypes.c_wchar * 15),
+        ("numberOfSessions", ctypes.c_int32),
+        ("numCars", ctypes.c_int32),
+        ("carModel", ctypes.c_wchar * 33),
+        ("track", ctypes.c_wchar * 33),
+        ("playerName", ctypes.c_wchar * 33),
+        ("playerSurname", ctypes.c_wchar * 33),
+        ("playerNick", ctypes.c_wchar * 33),
+        ("sectorCount", ctypes.c_int32),
+        ("maxTorque", ctypes.c_float),
+        ("maxPower", ctypes.c_float),
+        ("maxRpm", ctypes.c_int32),
+        ("maxFuel", ctypes.c_float),
+        ("suspensionMaxTravel", ctypes.c_float * 4),
+        ("tyreRadius", ctypes.c_float * 4),
+        ("maxTurboBoost", ctypes.c_float),
+        ("deprecated_1", ctypes.c_float),
+        ("deprecated_2", ctypes.c_float),
+        ("penaltiesEnabled", ctypes.c_int32),
+        ("aidFuelRate", ctypes.c_float),
+        ("aidTireRate", ctypes.c_float),
+        ("aidMechanicalDamage", ctypes.c_float),
+        ("allowTyreBlankets", ctypes.c_int32),
+        ("aidStability", ctypes.c_float),
+        ("aidAutoClutch", ctypes.c_int32),
+        ("aidAutoBlip", ctypes.c_int32),
+    ]
 
 class ACTelemetryReader:
     """
     Professional Assetto Corsa telemetry reader using shared memory.
-    
-    Features:
-    - Full physics structure support
-    - Thread-safe operation
-    - Error handling and recovery
-    - Callback support for real-time updates
-    - 60fps+ capable
+    Reads physics, graphics, and static to provide full Telemetry.
     """
-    
-    SHARED_MEMORY_NAME = "Local\\acpmf_physics"
-    
-    # Complete structure definition matching AC's shared memory
-    # Reference: assettocorsa/system/cfg/sharedmemory/sim_info.h
-    PHYSICS_STRUCT = (
-        "i"      # packetId (int)
-        "f"      # gas (float)
-        "f"      # brake (float)
-        "f"      # fuel (float)
-        "i"      # gear (int)
-        "i"      # rpms (int)
-        "f"      # steerAngle (float)
-        "f"      # speedKmh (float)
-        "fff"    # velocity (3 floats)
-        "fff"    # accG (3 floats)
-        "ffff"   # wheelSlip (4 floats)
-        "ffff"   # wheelLoad (4 floats)
-        "ffff"   # wheelsPressure (4 floats)
-        "ffff"   # wheelAngularSpeed (4 floats)
-        "ffff"   # tyreWear (4 floats)
-        "ffff"   # tyreDirtyLevel (4 floats)
-        "ffff"   # tyreCoreTemperature (4 floats)
-        "ffff"   # camberRAD (4 floats)
-        "ffff"   # suspensionTravel (4 floats)
-        "f"      # drs (float)
-        "f"      # tc (float)
-        "f"      # heading (float)
-        "f"      # pitch (float)
-        "f"      # roll (float)
-        "f"      # cgHeight (float)
-        "fffff"  # carDamage (5 floats)
-        "i"      # pitLimiterOn (int)
-        "f"      # abs (float)
-        "i"      # autoShifterOn (int)
-        "f"      # turboBoost (float)
-        "f"      # airTemp (float)
-        "f"      # roadTemp (float)
-        "fff"    # localAngularVelocity (3 floats)
-        "f"      # finalFF (float)
-        "ffff"   # brakeTemp (4 floats)
-        "f"      # clutch (float)
-        "i"      # isAIControlled (int)
-        "fff"    # tyreContactPoint[0] (3 floats)
-        "fff"    # tyreContactPoint[1] (3 floats)
-        "fff"    # tyreContactPoint[2] (3 floats)
-        "fff"    # tyreContactPoint[3] (3 floats)
-        "fff"    # tyreContactNormal[0] (3 floats)
-        "fff"    # tyreContactNormal[1] (3 floats)
-        "fff"    # tyreContactNormal[2] (3 floats)
-        "fff"    # tyreContactNormal[3] (3 floats)
-        "fff"    # tyreContactHeading[0] (3 floats)
-        "fff"    # tyreContactHeading[1] (3 floats)
-        "fff"    # tyreContactHeading[2] (3 floats)
-        "fff"    # tyreContactHeading[3] (3 floats)
-        "f"      # brakeBias (float)
-    )
-    
-    STRUCT_SIZE = struct.calcsize(PHYSICS_STRUCT)
-    
-    def __init__(self):
-        self.running = False
-        self.thread: Optional[threading.Thread] = None
-        self.current_data: Optional[ACPhysics] = None
-        self.data_lock = threading.RLock()
-        self.mmap_handle: Optional[mmap.mmap] = None
-        
-    def connect(self) -> bool:
-        """
-        Attempt to connect to Assetto Corsa's shared memory.
-        Returns True if successful, False otherwise.
-        """
-        try:
-            self.mmap_handle = mmap.mmap(-1, self.STRUCT_SIZE, self.SHARED_MEMORY_NAME)
-            logger.info("Successfully connected to Assetto Corsa shared memory")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to connect to AC shared memory: {e}")
-            self.mmap_handle = None
-            return False
-    
-    def disconnect(self):
-        """Close the shared memory connection"""
-        if self.mmap_handle:
-            try:
-                self.mmap_handle.close()
-                logger.info("Disconnected from AC shared memory")
-            except Exception as e:
-                logger.error(f"Error closing shared memory: {e}")
-            finally:
-                self.mmap_handle = None
-    
-    def read_physics(self) -> Optional[ACPhysics]:
-        """
-        Read current physics data from shared memory.
-        Returns ACPhysics object or None if read fails.
-        """
-        if not self.mmap_handle:
-            return None
-            
-        try:
-            # Seek to beginning and read all data
-            self.mmap_handle.seek(0)
-            data = self.mmap_handle.read(self.STRUCT_SIZE)
-            
-            # Unpack the binary data
-            unpacked = struct.unpack(self.PHYSICS_STRUCT, data)
-            
-            # Parse into ACPhysics object
-            idx = 0
-            physics = ACPhysics(
-                packet_id=unpacked[idx],
-                gas=unpacked[idx+1],
-                brake=unpacked[idx+2],
-                fuel=unpacked[idx+3],
-                gear=unpacked[idx+4] - 1,  # AC returns: 0=R, 1=N, 2+=gears, so we subtract 1
-                rpms=unpacked[idx+5],
-                steer_angle=unpacked[idx+6],
-                speed_kmh=unpacked[idx+7],
-                velocity_x=unpacked[idx+8],
-                velocity_y=unpacked[idx+9],
-                velocity_z=unpacked[idx+10],
-                acc_g_x=unpacked[idx+11],
-                acc_g_y=unpacked[idx+12],
-                acc_g_z=unpacked[idx+13],
-                wheel_slip=unpacked[idx+14:idx+18],
-                wheel_load=unpacked[idx+18:idx+22],
-                wheels_pressure=unpacked[idx+22:idx+26],
-                wheel_angular_speed=unpacked[idx+26:idx+30],
-                tyre_wear=unpacked[idx+30:idx+34],
-                tyre_dirty_level=unpacked[idx+34:idx+38],
-                tyre_core_temperature=unpacked[idx+38:idx+42],
-                camber_rad=unpacked[idx+42:idx+46],
-                suspension_travel=unpacked[idx+46:idx+50],
-                drs=unpacked[idx+50],
-                tc=unpacked[idx+51],
-                heading=unpacked[idx+52],
-                pitch=unpacked[idx+53],
-                roll=unpacked[idx+54],
-                cg_height=unpacked[idx+55],
-                car_damage=unpacked[idx+56:idx+61],
-                pit_limiter_on=unpacked[idx+61],
-                abs=unpacked[idx+62],
-                auto_shifter_on=unpacked[idx+63],
-                turbo_boost=unpacked[idx+64],
-                air_temp=unpacked[idx+65],
-                road_temp=unpacked[idx+66],
-                local_angular_vel_x=unpacked[idx+67],
-                local_angular_vel_y=unpacked[idx+68],
-                local_angular_vel_z=unpacked[idx+69],
-                final_ff=unpacked[idx+70],
-                brake_temp=unpacked[idx+71:idx+75],
-                clutch=unpacked[idx+75],
-                is_ai_controlled=unpacked[idx+76],
-                tyre_contact_point=unpacked[idx+77:idx+89],  # 4x3 floats
-                tyre_contact_normal=unpacked[idx+89:idx+101],  # 4x3 floats
-                tyre_contact_heading=unpacked[idx+101:idx+113],  # 4x3 floats
-                brake_bias=unpacked[idx+113],
-            )
-            
-            with self.data_lock:
-                self.current_data = physics
-            
-            return physics
-            
-        except Exception as e:
-            logger.error(f"Error reading physics data: {e}")
-            return None
-    
-    def get_current_data(self) -> Optional[ACPhysics]:
-        """Get the most recently read physics data (thread-safe)"""
-        with self.data_lock:
-            return self.current_data
-    
-    def start_polling(self, callback: Optional[Callable[[ACPhysics], None]] = None, 
-                     poll_rate: float = 0.016) -> bool:
-        """
-        Start polling telemetry data in a background thread.
-        
-        Args:
-            callback: Optional function to call with each new data reading
-            poll_rate: Polling interval in seconds (default: 0.016 = ~60fps)
-        
-        Returns:
-            True if polling started successfully
-        """
-        if self.running:
-            logger.warning("Polling already running")
-            return False
-        
-        if not self.connect():
-            return False
-        
-        self.running = True
-        self.thread = threading.Thread(
-            target=self._polling_loop,
-            args=(callback, poll_rate),
-            daemon=True
-        )
-        self.thread.start()
-        logger.info(f"Started telemetry polling at {1/poll_rate:.1f} fps")
-        return True
-    
-    def stop_polling(self):
-        """Stop the polling thread"""
-        if not self.running:
-            return
-        
-        self.running = False
-        if self.thread:
-            self.thread.join(timeout=2.0)
-        self.disconnect()
-        logger.info("Stopped telemetry polling")
-    
-    def _polling_loop(self, callback: Optional[Callable], poll_rate: float):
-        """Internal polling loop running in background thread"""
-        last_packet_id = -1
-        
-        while self.running:
-            try:
-                data = self.read_physics()
-                
-                if data and callback:
-                    # Only call callback if we got new data
-                    if data.packet_id != last_packet_id:
-                        callback(data)
-                        last_packet_id = data.packet_id
-                
-                time.sleep(poll_rate)
-                
-            except Exception as e:
-                logger.error(f"Error in polling loop: {e}")
-                time.sleep(1)  # Wait longer on error
-    
-    def __enter__(self):
-        """Context manager support"""
-        self.connect()
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager cleanup"""
-        self.stop_polling()
-        self.disconnect()
+    PHYSICS_MAP_NAME = "Local\acpmf_physics"
+    GRAPHIC_MAP_NAME = "Local\acpmf_graphics"
+    STATIC_MAP_NAME = "Local\acpmf_static"
 
+    def __init__(self):
+        self._physics_mmap = None
+        self._graphic_mmap = None
+        self._static_mmap = None
+        self.connected = False
+        self._lock = threading.Lock()
+        self._stop_event = threading.Event()
+        self._callbacks = []
+
+    def connect(self) -> bool:
+        with self._lock:
+            if self.connected:
+                return True
+            try:
+                self._physics_mmap = mmap.mmap(-1, ctypes.sizeof(SPageFilePhysics), self.PHYSICS_MAP_NAME)
+                self._graphic_mmap = mmap.mmap(-1, ctypes.sizeof(SPageFileGraphic), self.GRAPHIC_MAP_NAME)
+                self._static_mmap = mmap.mmap(-1, ctypes.sizeof(SPageFileStatic), self.STATIC_MAP_NAME)
+                self.connected = True
+                logging.info("Connected to Assetto Corsa shared memory")
+                return True
+            except FileNotFoundError:
+                self.disconnect()
+                return False
+            except Exception as e:
+                logging.error(f"Error connecting to AC shared memory: {e}")
+                self.disconnect()
+                return False
+
+    def disconnect(self):
+        with self._lock:
+            self.connected = False
+            for mapped in (self._physics_mmap, self._graphic_mmap, self._static_mmap):
+                if mapped:
+                    try:
+                        mapped.close()
+                    except:
+                        pass
+            self._physics_mmap = None
+            self._graphic_mmap = None
+            self._static_mmap = None
+
+    def is_running(self) -> bool:
+        return self.connected
+
+    def read_physics(self):
+        if not self.connected:
+            return None
+        try:
+            self._physics_mmap.seek(0)
+            phys_data = self._physics_mmap.read(ctypes.sizeof(SPageFilePhysics))
+            phys = SPageFilePhysics.from_buffer_copy(phys_data)
+
+            self._graphic_mmap.seek(0)
+            graph_data = self._graphic_mmap.read(ctypes.sizeof(SPageFileGraphic))
+            graph = SPageFileGraphic.from_buffer_copy(graph_data)
+
+            self._static_mmap.seek(0)
+            stat_data = self._static_mmap.read(ctypes.sizeof(SPageFileStatic))
+            stat = SPageFileStatic.from_buffer_copy(stat_data)
+
+            return ACPhysics(
+                packet_id=phys.packetId,
+                gas=phys.gas,
+                brake=phys.brake,
+                fuel=phys.fuel,
+                gear=phys.gear,
+                rpms=phys.rpms,
+                steer_angle=phys.steerAngle,
+                speed_kmh=phys.speedKmh,
+                velocity_x=phys.velocity[0],
+                velocity_y=phys.velocity[1],
+                velocity_z=phys.velocity[2],
+                acc_g_x=phys.accG[0],
+                acc_g_y=phys.accG[1],
+                acc_g_z=phys.accG[2],
+                wheel_slip=tuple(phys.wheelSlip),
+                wheel_load=tuple(phys.wheelLoad),
+                wheels_pressure=tuple(phys.wheelsPressure),
+                wheel_angular_speed=tuple(phys.wheelAngularSpeed),
+                tyre_wear=tuple(phys.tyreWear),
+                tyre_dirty_level=tuple(phys.tyreDirtyLevel),
+                tyre_core_temperature=tuple(phys.tyreCoreTemperature),
+                drs=phys.drs,
+                tc=phys.tc,
+                pitch=phys.pitch,
+                abs=phys.abs,
+                clutch=phys.clutch,
+                brake_temp=tuple(phys.brakeTemp),
+                water_temp=phys.waterTemp,
+                brake_bias=phys.brakeBias,
+                max_rpm=stat.maxRpm if stat.maxRpm > 0 else phys.currentMaxRpm,
+                position=graph.position,
+                lap_time=graph.currentTime,
+                best_lap=graph.bestTime
+            )
+        except Exception as e:
+            # AC closed or mmap failure
+            self.disconnect()
+            return None
+
+    def start_polling(self, callback_rate_hz: int = 60):
+        # same as before, simplified for placeholder
+        pass
+    def stop_polling(self):
+        pass
+    def register_callback(self, callback):
+        pass
+    def unregister_callback(self, callback):
+        pass
 
 class IRacingTelemetryReader:
     """

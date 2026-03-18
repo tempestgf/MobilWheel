@@ -1,0 +1,400 @@
+<!-- HTML Checklist - Abrir en navegador o editor de texto -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vJoy Installer - Setup Checklist</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6D00, #FFD60A);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #eee;
+            transition: all 0.3s ease;
+        }
+        .item.completed {
+            background: #f0f7ff;
+            border-left-color: #4CAF50;
+        }
+        .item.completed .checkbox::before {
+            content: "✓";
+            color: #4CAF50;
+        }
+        .item.completed .text {
+            color: #4CAF50;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            background: white;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .item:hover .checkbox {
+            border-color: #FF6D00;
+            background: #fff8f0;
+        }
+        .item.completed .checkbox {
+            background: #f0f7ff;
+            border-color: #4CAF50;
+        }
+        .text {
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+            color: #333;
+            font-size: 14px;
+        }
+        .hint {
+            display: none;
+            font-size: 12px;
+            color: #999;
+            margin-top: 6px;
+            padding-left: 36px;
+        }
+        .item.completed .hint {
+            display: block;
+        }
+        .summary {
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .summary p {
+            color: #666;
+            font-size: 14px;
+        }
+        .summary strong {
+            color: #FF6D00;
+            font-size: 18px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6D00, #FFD60A);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,109,0,0.3);
+        }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        .all-done {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0f7ff, #e8f5ff);
+            border-radius: 6px;
+            border: 2px solid #4CAF50;
+            display: none;
+        }
+        .all-done h2 {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .all-done p {
+            color: #666;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .button-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 vJoy Installer Setup</h1>
+            <p>Verificación rápida del sistema</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+
+        <!-- Verificación de Archivos -->
+        <div class="section">
+            <div class="section-title">📁 Archivos Requeridos</div>
+            
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">vjoy_installer.py</div>
+                    <div class="hint">✓ Módulo de descarga e instalación</div>
+                </div>
+            </div>
+            
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">vjoy_setup_helper.py</div>
+                    <div class="hint">✓ Utilidades de integración</div>
+                </div>
+            </div>
+            
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">vjoy_bootstrap.py</div>
+                    <div class="hint">✓ Integración con PyQt5</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">install_vjoy.bat</div>
+                    <div class="hint">✓ Ejecutable principal</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">Start-Server.bat</div>
+                    <div class="hint">✓ Servidor + vJoy</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">Install-vJoy.ps1</div>
+                    <div class="hint">✓ Script PowerShell</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentación -->
+        <div class="section">
+            <div class="section-title">📖 Documentación</div>
+            
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">QUICKSTART.md</div>
+                    <div class="hint">✓ Inicio rápido</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">VJOY_INSTALLER_README.md</div>
+                    <div class="hint">✓ Guía completa</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">INTEGRATION_GUIDE.md</div>
+                    <div class="hint">✓ Para desarrolladores</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">VJOY_INSTALLER_INDEX.md</div>
+                    <div class="hint">✓ Índice de archivos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing -->
+        <div class="section">
+            <div class="section-title">🧪 Testing y Diagnóstico</div>
+            
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">test_vjoy_system.py</div>
+                    <div class="hint">✓ Ejecuta: python test_vjoy_system.py</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preparación -->
+        <div class="section">
+            <div class="section-title">✅ Checklist Pre-Instalación</div>
+            
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">Python 3.7+ instalado</div>
+                    <div class="hint">✓ Verifica con: python --version</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">Conexión a Internet</div>
+                    <div class="hint">✓ Se descargará ~50 MB desde vjoy.org</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">50 MB de espacio libre</div>
+                    <div class="hint">✓ Para almacenar vJoy</div>
+                </div>
+            </div>
+
+            <div class="item" onclick="toggleItem(this)">
+                <div class="checkbox"></div>
+                <div>
+                    <div class="text">Antivirus desactivado (opcional)</div>
+                    <div class="hint">✓ Algunos antivirus bloquean descargas</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="all-done" id="allDone">
+            <h2>✓ ¡Todo Listo!</h2>
+            <p>Ya puedes ejecutar install_vjoy.bat</p>
+        </div>
+
+        <div class="summary">
+            <p>Tareas completadas: <strong id="completed">0</strong> / <strong id="total">0</strong></p>
+        </div>
+
+        <div class="button-group">
+            <button class="button btn-secondary" onclick="resetAll()">Limpiar</button>
+            <button class="button btn-primary" onclick="installNow()">Instalar vJoy Ahora</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleItem(element) {
+            element.classList.toggle('completed');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const items = document.querySelectorAll('.item');
+            const completed = document.querySelectorAll('.item.completed').length;
+            const total = items.length;
+
+            document.getElementById('completed').textContent = completed;
+            document.getElementById('total').textContent = total;
+
+            const percent = (completed / total) * 100;
+            document.querySelector('.progress').style.width = percent + '%';
+
+            if (completed === total && total > 0) {
+                document.getElementById('allDone').style.display = 'block';
+            } else {
+                document.getElementById('allDone').style.display = 'none';
+            }
+        }
+
+        function resetAll() {
+            document.querySelectorAll('.item').forEach(el => {
+                el.classList.remove('completed');
+            });
+            updateProgress();
+        }
+
+        function installNow() {
+            alert('Se abrirá una ventana de comandos.\n\nEjecutando: install_vjoy.bat\n\nPor favor, permite que se complete el proceso.');
+            // En un ambiente real, esto ejecutaría el bat
+            // Para esta página HTML, simplemente mostramos un mensaje
+        }
+
+        // Iniciar
+        window.onload = () => updateProgress();
+    </script>
+</body>
+</html>

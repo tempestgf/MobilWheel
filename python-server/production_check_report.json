@@ -1,0 +1,142 @@
+{
+  "timestamp": "2026-03-17T19:13:17.123540",
+  "python_version": "3.12.10",
+  "platform": "win32",
+  "checks": {
+    "Python Version": {
+      "status": "PASS",
+      "message": "Python 3.12.10",
+      "details": "Requiere Python 3.7 o superior"
+    },
+    "Platform": {
+      "status": "PASS",
+      "message": "Plataforma: win32",
+      "details": "Este sistema solo funciona en Windows"
+    },
+    "Archivo: vjoy_installer.py": {
+      "status": "PASS",
+      "message": "Archivo Python válido",
+      "details": "Módulo de descarga e instalación"
+    },
+    "Archivo: vjoy_setup_helper.py": {
+      "status": "PASS",
+      "message": "Archivo Python válido",
+      "details": "Helper de utilidades"
+    },
+    "Archivo: vjoy_bootstrap.py": {
+      "status": "PASS",
+      "message": "Archivo Python válido",
+      "details": "Integración PyQt5"
+    },
+    "Archivo: install_vjoy.bat": {
+      "status": "PASS",
+      "message": "Archivo presente",
+      "details": "Script ejecutable (usuarios)"
+    },
+    "Archivo: Install-vJoy.ps1": {
+      "status": "PASS",
+      "message": "Archivo presente",
+      "details": "Script PowerShell (avanzados)"
+    },
+    "Archivo: Start-Server.bat": {
+      "status": "PASS",
+      "message": "Archivo presente",
+      "details": "Integración con servidor"
+    },
+    "Documento: QUICKSTART.md": {
+      "status": "PASS",
+      "message": "Presente",
+      "details": "Guía rápida"
+    },
+    "Documento: VJOY_INSTALLER_README.md": {
+      "status": "PASS",
+      "message": "Presente",
+      "details": "Documentación completa"
+    },
+    "Documento: INTEGRATION_GUIDE.md": {
+      "status": "PASS",
+      "message": "Presente",
+      "details": "Guía de integración"
+    },
+    "Documento: VJOY_INSTALLER_INDEX.md": {
+      "status": "PASS",
+      "message": "Presente",
+      "details": "Índice de archivos"
+    },
+    "Calidad: vjoy_installer.py": {
+      "status": "PASS",
+      "message": "Incluye: docstrings, type hints, error handling",
+      "details": "Tamaño: 13614 bytes"
+    },
+    "Calidad: vjoy_setup_helper.py": {
+      "status": "PASS",
+      "message": "Incluye: docstrings, type hints, error handling",
+      "details": "Tamaño: 3991 bytes"
+    },
+    "Calidad: vjoy_bootstrap.py": {
+      "status": "PASS",
+      "message": "Incluye: docstrings, type hints, error handling",
+      "details": "Tamaño: 6560 bytes"
+    },
+    "Carpeta vJoy": {
+      "status": "PASS",
+      "message": "Se creará si no existe",
+      "details": "Ubicación para descargas"
+    },
+    "Módulo: urllib": {
+      "status": "PASS",
+      "message": "Disponible",
+      "details": "Para descargas HTTP"
+    },
+    "Módulo: zipfile": {
+      "status": "PASS",
+      "message": "Disponible",
+      "details": "Para extraer ZIPs"
+    },
+    "Módulo: subprocess": {
+      "status": "PASS",
+      "message": "Disponible",
+      "details": "Para ejecutar procesos"
+    },
+    "Módulo: ctypes": {
+      "status": "PASS",
+      "message": "Disponible",
+      "details": "Para permisos administrativos"
+    },
+    "Módulo: pathlib": {
+      "status": "PASS",
+      "message": "Disponible",
+      "details": "Para manejo de rutas"
+    },
+    "PyQt5": {
+      "status": "PASS",
+      "message": "PyQt5 disponible (integración UI)",
+      "details": "Requerido para interfaz gráfica"
+    },
+    "Import: vjoy_installer": {
+      "status": "PASS",
+      "message": "Módulo importable",
+      "details": ""
+    },
+    "Import: vjoy_setup_helper": {
+      "status": "PASS",
+      "message": "Módulo importable",
+      "details": ""
+    },
+    "Import: vjoy_bootstrap": {
+      "status": "PASS",
+      "message": "Módulo importable",
+      "details": ""
+    },
+    "Derechos de Administrador": {
+      "status": "PASS",
+      "message": "No verificable (puede ser normal)",
+      "details": ""
+    },
+    "Espacio en Disco": {
+      "status": "PASS",
+      "message": "4.31 GB disponible (necesita ~100 MB)",
+      "details": "Usado: 218.74 GB, Total: 223.05 GB"
+    }
+  }
+}

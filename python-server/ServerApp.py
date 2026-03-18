@@ -3,11 +3,13 @@ import sys
 import threading
 import logging
 from io import StringIO
+from pathlib import Path
 
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel,
                              QProgressBar, QTextEdit, QGridLayout, QCheckBox,
-                             QGraphicsDropShadowEffect, QFrame, QSizePolicy)
+                             QGraphicsDropShadowEffect, QFrame, QSizePolicy,
+                             QMessageBox)
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer, Qt, QSettings
 from PyQt5.QtGui import QIcon, QFont, QColor, QTextCursor, QPixmap, QPainter, QPainterPath, QFontDatabase, QLinearGradient, QPen, QBrush
 
@@ -16,6 +18,8 @@ log_stream = StringIO()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', stream=log_stream)
 
 import xbox as server_module
+from app_version import APP_VERSION
+from updater import AppUpdater, UpdateError
 
 try:
     from game_telemetry import GameTelemetryReader, GamePhysics
@@ -32,31 +36,30 @@ class WorkerSignals(QObject):
     telemetry_update = pyqtSignal(object)
 
 # ── Racing stripe header widget ────────────────────────────────────────────
-class RacingStripe(QWidget):
-    """Decorative horizontal accent stripe with a gradient."""
+class AccentStripe(QWidget):
+    """Decorative horizontal accent stripe with a sleek gradient."""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(4)
+        self.setFixedHeight(3)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         grad = QLinearGradient(0, 0, self.width(), 0)
-        grad.setColorAt(0.0,  QColor(0,   0,   0,   0))
-        grad.setColorAt(0.2,  QColor(255, 109,  0, 220))
-        grad.setColorAt(0.6,  QColor(255, 214,  10, 255))
-        grad.setColorAt(1.0,  QColor(255, 109,  0,  80))
+        grad.setColorAt(0.0,  QColor("#EA580C")) # Tailwind orange-600
+        grad.setColorAt(0.5,  QColor("#F97316")) # Tailwind orange-500
+        grad.setColorAt(1.0,  QColor("#EA580C"))
         painter.fillRect(self.rect(), QBrush(grad))
 
 
-class RacingGaugeBar(QProgressBar):
-    """Custom progress bar that draws a gradient fill with a glowing edge."""
-    def __init__(self, max_val=100, accent="#FF6D00", parent=None):
+class ModernGaugeBar(QProgressBar):
+    """Custom progress bar with a clean, professional look."""
+    def __init__(self, max_val=100, accent="#F97316", parent=None):
         super().__init__(parent)
         self.setMaximum(max_val)
         self.setTextVisible(False)
         self._accent = QColor(accent)
-        self.setFixedHeight(16)
+        self.setFixedHeight(12)
         # We fully paint our own background — skip Qt's redundant fill
         self.setAttribute(Qt.WA_OpaquePaintEvent)
 
@@ -64,31 +67,21 @@ class RacingGaugeBar(QProgressBar):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         r = self.rect()
-        radius = 6
+        radius = r.height() / 2.0
 
         # Track
         path_bg = QPainterPath()
         path_bg.addRoundedRect(r.x(), r.y(), r.width(), r.height(), radius, radius)
-        painter.fillPath(path_bg, QColor("#0A0A0A"))
-        painter.setPen(QPen(QColor("#1F1F1F"), 1))
-        painter.drawPath(path_bg)
+        painter.fillPath(path_bg, QColor("#262626")) # Tailwind neutral-800
+        painter.setPen(Qt.NoPen)
 
         # Fill
         ratio = self.value() / max(self.maximum(), 1)
         fill_w = int(r.width() * ratio)
         if fill_w > 2:
-            grad = QLinearGradient(0, 0, fill_w, 0)
-            grad.setColorAt(0.0, self._accent.darker(140))
-            grad.setColorAt(0.6, self._accent)
-            grad.setColorAt(1.0, QColor("#FFD60A"))
             fill_path = QPainterPath()
             fill_path.addRoundedRect(r.x(), r.y(), fill_w, r.height(), radius, radius)
-            painter.fillPath(fill_path, QBrush(grad))
-
-            # Glow edge
-            glow_pen = QPen(QColor(255, 214, 10, 80), 3)
-            painter.setPen(glow_pen)
-            painter.drawLine(fill_w, r.y() + 2, fill_w, r.bottom() - 2)
+            painter.fillPath(fill_path, QBrush(self._accent))
 
 
 class ServerApp(QMainWindow):
@@ -118,6 +111,10 @@ class ServerApp(QMainWindow):
 
         self.server_thread = None
         self.server_running = threading.Event()
+        self.update_in_progress = False
+        self.updater = AppUpdater(current_version=APP_VERSION)
+        self.update_check_timer = QTimer(self)
+        self.update_check_timer.timeout.connect(self.check_updates_silent)
 
         self.telemetry_reader = None
         self.telemetry_connected = False
@@ -148,7 +145,13 @@ class ServerApp(QMainWindow):
         if self.settings.value("auto_start_server", False, type=bool):
             QTimer.singleShot(500, self.start_server)
 
-    def _make_shadow(self, blur=20, color=QColor(255, 109, 0, 80), offset=(0, 5)):
+        # Auto-check updates after UI is responsive
+        if self.settings.value("auto_check_updates", True, type=bool):
+            QTimer.singleShot(1800, self.check_updates_silent)
+            # Re-check every 12 hours
+            self.update_check_timer.start(12 * 60 * 60 * 1000)
+
+    def _make_shadow(self, blur=15, color=QColor(0, 0, 0, 100), offset=(0, 2)):
         s = QGraphicsDropShadowEffect()
         s.setBlurRadius(blur)
         s.setColor(color)
@@ -156,18 +159,18 @@ class ServerApp(QMainWindow):
         return s
 
     def _section_label(self, text):
-        """Small orange uppercase section divider label."""
+        """Small gray uppercase section divider label."""
         lbl = QLabel(text)
-        lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
+        lbl.setFont(QFont("Segoe UI", 8, QFont.DemiBold))
         lbl.setStyleSheet(
-            "color: #FF6D00;"
-            "letter-spacing: 4px;"
-            "margin-top: 6px;"
+            "color: #9E9E9E;"
+            "letter-spacing: 2px;"
+            "margin-top: 10px;"
             "margin-bottom: 2px;"
         )
         return lbl
 
-    def _value_label(self, text, size=22):
+    def _value_label(self, text, size=20):
         lbl = QLabel(text)
         lbl.setFont(QFont("Consolas", size, QFont.Bold))
         lbl.setAlignment(Qt.AlignCenter)
@@ -179,12 +182,12 @@ class ServerApp(QMainWindow):
         card = QFrame()
         card.setObjectName("StatCard")
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(4)
         t = QLabel(title)
-        t.setFont(QFont("Segoe UI", 7, QFont.Bold))
+        t.setFont(QFont("Segoe UI", 7, QFont.DemiBold))
         t.setAlignment(Qt.AlignCenter)
-        t.setStyleSheet("color: #555555; letter-spacing: 2px;")
+        t.setStyleSheet("color: #8E8E8E; letter-spacing: 1px;")
         layout.addWidget(t)
         layout.addWidget(value_widget)
         return card
@@ -198,12 +201,12 @@ class ServerApp(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         # ── Top accent stripe ─────────────────────────────────────────────
-        main_layout.addWidget(RacingStripe())
+        main_layout.addWidget(AccentStripe())
 
         # ── Inner content (NO scroll — responsive direct layout) ──────────
         inner = QVBoxLayout()
-        inner.setSpacing(8)
-        inner.setContentsMargins(28, 12, 28, 12)
+        inner.setSpacing(10)
+        inner.setContentsMargins(32, 16, 32, 16)
         main_layout.addLayout(inner, stretch=1)
 
         # ── HEADER ───────────────────────────────────────────────────────
@@ -213,19 +216,19 @@ class ServerApp(QMainWindow):
         logo_label = QLabel()
         logo_path = os.path.join(self.base_path, "app_logo.png")
         if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path).scaled(52, 52, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            pixmap = QPixmap(logo_path).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             logo_label.setPixmap(pixmap)
-            logo_label.setGraphicsEffect(self._make_shadow(24, QColor(255, 109, 0, 90), (0, 0)))
+            logo_label.setGraphicsEffect(self._make_shadow(20, QColor(249, 115, 22, 60), (0, 0))) # orange shadow
 
         title_layout = QVBoxLayout()
         title_layout.setSpacing(1)
-        title_layout.setContentsMargins(12, 0, 0, 0)
+        title_layout.setContentsMargins(14, 0, 0, 0)
         title_label = QLabel("GENEON")
-        title_label.setFont(QFont(self.museo_font_family, 30, QFont.Bold))
-        title_label.setStyleSheet("color: #FFFFFF; letter-spacing: 3px;")
+        title_label.setFont(QFont(self.museo_font_family, 26, QFont.Bold))
+        title_label.setStyleSheet("color: #FAFAFA; letter-spacing: 2px;")
         subtitle_label = QLabel("MOBILE WHEEL SERVER")
-        subtitle_label.setFont(QFont("Segoe UI", 9, QFont.Bold))
-        subtitle_label.setStyleSheet("color: #FF6D00; letter-spacing: 7px;")
+        subtitle_label.setFont(QFont("Segoe UI", 9, QFont.Medium))
+        subtitle_label.setStyleSheet("color: #F97316; letter-spacing: 5px;") # orange-500
         title_layout.addWidget(title_label)
         title_layout.addWidget(subtitle_label)
 
@@ -242,11 +245,10 @@ class ServerApp(QMainWindow):
         self.status_pill.setFont(QFont("Segoe UI", 8, QFont.Bold))
         self.status_pill.setAlignment(Qt.AlignCenter)
         self.status_pill.setStyleSheet(
-            "color: #FF3B30; background-color: #1A0000;"
-            "border: 1px solid #FF3B30; border-radius: 10px;"
+            "color: #F97316; background-color: transparent;" # Orange
+            "border: 1px solid #F97316; border-radius: 6px;"
             "padding: 3px 12px; letter-spacing: 2px;"
         )
-        self.status_pill.setGraphicsEffect(self._make_shadow(10, QColor(255, 59, 48, 80), (0, 0)))
         self.status_indicator = self.status_pill  # compat
 
         cb_row = QHBoxLayout()
@@ -259,8 +261,14 @@ class ServerApp(QMainWindow):
         self.autostart_server_cb.stateChanged.connect(
             lambda state: self.settings.setValue("auto_start_server", state == Qt.Checked)
         )
+        self.auto_update_cb = QCheckBox("Auto-update")
+        self.auto_update_cb.setChecked(self.settings.value("auto_check_updates", True, type=bool))
+        self.auto_update_cb.stateChanged.connect(
+            lambda state: self.settings.setValue("auto_check_updates", state == Qt.Checked)
+        )
         cb_row.addWidget(self.autostart_app_cb)
         cb_row.addWidget(self.autostart_server_cb)
+        cb_row.addWidget(self.auto_update_cb)
 
         right_col.addWidget(self.status_pill, alignment=Qt.AlignRight)
         right_col.addLayout(cb_row)
@@ -268,24 +276,24 @@ class ServerApp(QMainWindow):
         inner.addLayout(header_layout)
 
         # ── Racing stripe divider ─────────────────────────────────────────
-        inner.addWidget(RacingStripe())
+        inner.addWidget(AccentStripe())
 
         # ── CONTROL BUTTONS ───────────────────────────────────────────────
         control_layout = QHBoxLayout()
-        control_layout.setSpacing(10)
+        control_layout.setSpacing(12)
 
         self.start_btn = QPushButton("▶  START")
         self.start_btn.setObjectName("StartBtn")
         self.start_btn.setCursor(Qt.PointingHandCursor)
         self.start_btn.setMinimumHeight(44)
-        self.start_btn.setFont(QFont("Segoe UI", 11, QFont.Bold))
+        self.start_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.start_btn.clicked.connect(self.start_server)
 
         self.stop_btn = QPushButton("■  STOP")
         self.stop_btn.setObjectName("StopBtn")
         self.stop_btn.setCursor(Qt.PointingHandCursor)
         self.stop_btn.setMinimumHeight(44)
-        self.stop_btn.setFont(QFont("Segoe UI", 11, QFont.Bold))
+        self.stop_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.stop_btn.clicked.connect(self.stop_server)
         self.stop_btn.setEnabled(False)
 
@@ -293,14 +301,22 @@ class ServerApp(QMainWindow):
         self.restart_btn.setObjectName("RestartBtn")
         self.restart_btn.setCursor(Qt.PointingHandCursor)
         self.restart_btn.setMinimumHeight(44)
-        self.restart_btn.setFont(QFont("Segoe UI", 11, QFont.Bold))
+        self.restart_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         self.restart_btn.clicked.connect(self.restart_server)
         self.restart_btn.setEnabled(False)
 
-        self.start_btn.setGraphicsEffect(self._make_shadow(20, QColor(255, 109, 0, 90), (0, 4)))
+        self.update_btn = QPushButton("⬇  UPDATE")
+        self.update_btn.setObjectName("UpdateBtn")
+        self.update_btn.setCursor(Qt.PointingHandCursor)
+        self.update_btn.setMinimumHeight(44)
+        self.update_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        self.update_btn.clicked.connect(self.check_updates_manual)
+
+        self.start_btn.setGraphicsEffect(self._make_shadow(15, QColor(249, 115, 22, 40), (0, 2))) # orange shadow
         control_layout.addWidget(self.start_btn, 2)
         control_layout.addWidget(self.stop_btn, 1)
         control_layout.addWidget(self.restart_btn, 1)
+        control_layout.addWidget(self.update_btn, 1)
         inner.addLayout(control_layout)
 
         # ── TELEMETRY ─────────────────────────────────────────────────────
@@ -316,7 +332,7 @@ class ServerApp(QMainWindow):
             # Row 0 — status + disconnect
             self.telemetry_status_lbl = QLabel("●  Searching for game...")
             self.telemetry_status_lbl.setFont(QFont("Segoe UI", 10, QFont.Bold))
-            self.telemetry_status_lbl.setStyleSheet("color: #FFD60A;")
+            self.telemetry_status_lbl.setStyleSheet("color: #F59E0B;") # Amber-500
             self.telemetry_disconnect_btn = QPushButton("DISCONNECT")
             self.telemetry_disconnect_btn.setObjectName("DisconnectBtn")
             self.telemetry_disconnect_btn.setEnabled(False)
@@ -340,18 +356,18 @@ class ServerApp(QMainWindow):
             tele_grid.addWidget(rpm_card,   1, 3, 1, 1)
 
             # Row 2 — RPM bar
-            self.telemetry_rpm_bar = RacingGaugeBar(8000, "#FF3B30")
+            self.telemetry_rpm_bar = ModernGaugeBar(8000, "#F97316") # Orange-500
             tele_grid.addWidget(self.telemetry_rpm_bar, 2, 0, 1, 4)
 
             # Row 3 — Gas bar
             gas_lbl = QLabel("GAS")
             gas_lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
-            gas_lbl.setStyleSheet("color: #34C759; letter-spacing: 2px;")
+            gas_lbl.setStyleSheet("color: #FFFFFF; letter-spacing: 2px;") # White
             gas_lbl.setFixedWidth(40)
-            self.telemetry_gas_bar = RacingGaugeBar(100, "#34C759")
+            self.telemetry_gas_bar = ModernGaugeBar(100, "#FAFAFA") # Neutral-50
             self.telemetry_gas_lbl = QLabel("0%")
             self.telemetry_gas_lbl.setFont(QFont("Consolas", 10, QFont.Bold))
-            self.telemetry_gas_lbl.setStyleSheet("color: #34C759;")
+            self.telemetry_gas_lbl.setStyleSheet("color: #FFFFFF;")
             self.telemetry_gas_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.telemetry_gas_lbl.setFixedWidth(38)
             tele_grid.addWidget(gas_lbl,                  3, 0)
@@ -361,12 +377,12 @@ class ServerApp(QMainWindow):
             # Row 4 — Brake bar
             brk_lbl = QLabel("BRAKE")
             brk_lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
-            brk_lbl.setStyleSheet("color: #FF3B30; letter-spacing: 2px;")
+            brk_lbl.setStyleSheet("color: #F97316; letter-spacing: 2px;") # Orange-500
             brk_lbl.setFixedWidth(40)
-            self.telemetry_brake_bar = RacingGaugeBar(100, "#FF3B30")
+            self.telemetry_brake_bar = ModernGaugeBar(100, "#F97316") # Orange-500
             self.telemetry_brake_lbl = QLabel("0%")
             self.telemetry_brake_lbl.setFont(QFont("Consolas", 10, QFont.Bold))
-            self.telemetry_brake_lbl.setStyleSheet("color: #FF3B30;")
+            self.telemetry_brake_lbl.setStyleSheet("color: #F97316;")
             self.telemetry_brake_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.telemetry_brake_lbl.setFixedWidth(38)
             tele_grid.addWidget(brk_lbl,                  4, 0)
@@ -392,18 +408,18 @@ class ServerApp(QMainWindow):
             row = QHBoxLayout()
             row.setSpacing(12)
             lbl = QLabel(label_text)
-            lbl.setFont(QFont("Segoe UI", 9, QFont.Bold))
+            lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
             lbl.setStyleSheet(f"color: {accent_color}; min-width: 82px; letter-spacing: 1px;")
             row.addWidget(lbl)
             row.addWidget(bar_widget, 1)
             return row
 
-        self.accel_bar = RacingGaugeBar(100,   "#34C759")
-        self.brake_bar = RacingGaugeBar(100,   "#FF3B30")
-        self.steer_bar = RacingGaugeBar(32767, "#FF6D00")
-        axis_outer.addLayout(axis_row("ACCELERATE", self.accel_bar, "#34C759"))
-        axis_outer.addLayout(axis_row("BRAKE",      self.brake_bar, "#FF3B30"))
-        axis_outer.addLayout(axis_row("STEERING",   self.steer_bar, "#FF6D00"))
+        self.accel_bar = ModernGaugeBar(100,   "#FAFAFA") # White/Neutral-50
+        self.brake_bar = ModernGaugeBar(100,   "#F97316") # Orange-500
+        self.steer_bar = ModernGaugeBar(32767, "#FB923C") # Orange-400
+        axis_outer.addLayout(axis_row("ACCELERATE", self.accel_bar, "#FAFAFA"))
+        axis_outer.addLayout(axis_row("BRAKE",      self.brake_bar, "#F97316"))
+        axis_outer.addLayout(axis_row("STEERING",   self.steer_bar, "#FB923C"))
         inner.addWidget(axis_frame)
 
         # ── BUTTON STATES ─────────────────────────────────────────────────
@@ -439,158 +455,276 @@ class ServerApp(QMainWindow):
         qss = """
         /* ── Base ─────────────────────────────────────────────────── */
         QMainWindow {
-            background-color: #070707;
+            background-color: #0A0A0A;
         }
         QWidget {
-            color: #DCDCDC;
+            color: #FAFAFA;
             font-family: 'Segoe UI', sans-serif;
             background-color: transparent;
         }
         #ContentWidget {
-            background-color: #070707;
+            background-color: #0A0A0A;
         }
 
         /* ── Section frames (Telemetry / Axis / Buttons) ─────────── */
         #TelemetryFrame, #AxisFrame, #BtnFrame {
-            background-color: #0D0D0D;
-            border: 1px solid #1E1E1E;
-            border-radius: 12px;
+            background-color: #171717;
+            border: 1px solid #262626;
+            border-radius: 8px;
         }
         /* Left accent bar on each section frame */
-        #TelemetryFrame {
-            border-left: 3px solid #FF3B30;
-        }
-        #AxisFrame {
-            border-left: 3px solid #FF6D00;
-        }
-        #BtnFrame {
-            border-left: 3px solid #FFD60A;
-        }
+        #TelemetryFrame { border-left: 4px solid #F97316; } /* Orange */
+        #AxisFrame { border-left: 4px solid #FAFAFA; } /* White */
+        #BtnFrame { border-left: 4px solid #525252; } /* Gray */
 
         /* ── Stat cards ──────────────────────────────────────────── */
         #StatCard {
-            background-color: #111111;
-            border: 1px solid #242424;
-            border-radius: 10px;
+            background-color: #0A0A0A;
+            border: 1px solid #262626;
+            border-radius: 6px;
         }
 
         /* ── Buttons ─────────────────────────────────────────────── */
         QPushButton {
-            background-color: #111111;
-            border: 1px solid #2A2A2A;
-            color: #888888;
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-weight: 800;
-            font-size: 13px;
-            letter-spacing: 3px;
+            background-color: #171717;
+            border: 1px solid #404040;
+            color: #A3A3A3;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 2px;
         }
         QPushButton:hover {
-            background-color: #181818;
-            border: 1px solid #FF6D00;
-            color: #FF6D00;
+            background-color: #262626;
+            border: 1px solid #F97316;
+            color: #FAFAFA;
         }
         QPushButton:pressed {
-            background-color: #FF6D00;
-            color: #000000;
-            border: 1px solid #FF6D00;
+            background-color: #F97316;
+            color: #0A0A0A;
+            border: 1px solid #F97316;
         }
         QPushButton:disabled {
-            border: 1px solid #1A1A1A;
-            color: #2E2E2E;
-            background-color: #0A0A0A;
+            border: 1px solid #262626;
+            color: #525252;
+            background-color: #171717;
         }
         /* START button — highlighted */
         #StartBtn {
-            background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                stop:0 #1A0900, stop:1 #1F1000);
-            border: 1px solid #FF6D00;
-            color: #FF6D00;
+            background-color: #171717;
+            border: 1px solid #EA580C;
+            color: #F97316;
         }
         #StartBtn:hover {
-            background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                stop:0 #FF6D00, stop:1 #FFD60A);
-            color: #000000;
-            border: 1px solid #FFD60A;
+            background-color: #F97316;
+            border: 1px solid #F97316;
+            color: #0A0A0A;
         }
         #StartBtn:disabled {
-            background-color: #0A0A0A;
-            border: 1px solid #1A1A1A;
-            color: #2E2E2E;
+            background-color: #171717;
+            border: 1px solid #262626;
+            color: #525252;
         }
         /* Disconnect button */
         #DisconnectBtn {
-            border: 1px solid #FF3B30;
-            color: #FF3B30;
-            background-color: #150000;
+            border: 1px solid #737373;
+            color: #A3A3A3;
+            background-color: transparent;
             font-size: 10px;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            border-radius: 4px;
         }
         #DisconnectBtn:hover {
-            background-color: #FF3B30;
-            color: #000000;
+            background-color: #F97316;
+            color: #0A0A0A;
+            border: 1px solid #F97316;
         }
         #DisconnectBtn:disabled {
-            border: 1px solid #1A1A1A;
-            color: #2E2E2E;
-            background-color: #0A0A0A;
+            border: 1px solid #262626;
+            color: #525252;
+            background-color: #171717;
         }
 
         /* ── Checkboxes ──────────────────────────────────────────── */
         QCheckBox {
-            spacing: 14px;
-            color: #888888;
+            spacing: 8px;
+            color: #A3A3A3;
             font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
+            font-weight: 500;
         }
-        QCheckBox:hover { color: #CCCCCC; }
+        QCheckBox:hover { color: #FAFAFA; }
         QCheckBox::indicator {
-            width: 20px;
-            height: 20px;
-            border-radius: 5px;
-            border: 2px solid #2A2A2A;
-            background-color: #0D0D0D;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid #525252;
+            background-color: #171717;
         }
-        QCheckBox::indicator:hover  { border: 2px solid #FF6D00; }
+        QCheckBox::indicator:hover  { border: 1px solid #F97316; }
         QCheckBox::indicator:checked {
-            background-color: #FF6D00;
-            border: 2px solid #FF6D00;
+            background-color: #F97316;
+            border: 1px solid #F97316;
             image: none;
         }
 
         /* ── Log area ────────────────────────────────────────────── */
         QTextEdit {
-            background-color: #080808;
-            border: 1px solid #1A1A1A;
-            border-radius: 10px;
-            padding: 14px;
-            color: #606060;
+            background-color: #171717;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            padding: 10px;
+            color: #D4D4D4;
             font-size: 11px;
-            selection-background-color: #FF6D00;
-            selection-color: #000000;
+            selection-background-color: #F97316;
+            selection-color: #0A0A0A;
         }
 
         /* ── Scrollbars ──────────────────────────────────────────── */
         QScrollBar:vertical {
             border: none;
-            background: #080808;
-            width: 6px;
-            border-radius: 3px;
+            background: #0A0A0A;
+            width: 8px;
+            border-radius: 4px;
         }
         QScrollBar::handle:vertical {
-            background: #252525;
+            background: #404040;
             min-height: 30px;
-            border-radius: 3px;
+            border-radius: 4px;
         }
-        QScrollBar::handle:vertical:hover { background: #FF6D00; }
+        QScrollBar::handle:vertical:hover { background: #525252; }
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
             border: none; background: none;
         }
-        /* hide scroll on log area - only the log itself scrolls internally */
         QScrollBar:horizontal { height: 0px; }
         """
         self.setStyleSheet(qss)
+
+    def check_updates_silent(self):
+        self._check_for_updates(interactive=False)
+
+    def check_updates_manual(self):
+        self._check_for_updates(interactive=True)
+
+    def _check_for_updates(self, interactive: bool):
+        if self.update_in_progress:
+            return
+
+        if interactive:
+            self.update_btn.setEnabled(False)
+            self.update_btn.setText("CHECKING...")
+
+        worker = threading.Thread(target=self._check_for_updates_worker, args=(interactive,), daemon=True)
+        worker.start()
+
+    def _check_for_updates_worker(self, interactive: bool):
+        try:
+            info = self.updater.check_for_updates()
+            QTimer.singleShot(0, lambda: self._on_update_manifest(interactive, info))
+        except UpdateError as exc:
+            QTimer.singleShot(0, lambda: self._on_update_check_error(interactive, str(exc)))
+
+    def _on_update_check_error(self, interactive: bool, message: str):
+        logging.warning(message)
+        self.update_btn.setEnabled(True)
+        self.update_btn.setText("⬇  UPDATE")
+        if interactive:
+            QMessageBox.warning(self, "Actualizacion", f"No se pudo comprobar actualizaciones.\n\n{message}")
+
+    def _on_update_manifest(self, interactive: bool, info: dict):
+        self.update_btn.setEnabled(True)
+        self.update_btn.setText("⬇  UPDATE")
+
+        if not info.get("update_available", False):
+            if interactive:
+                QMessageBox.information(self, "Actualizacion", f"Ya tienes la ultima version ({APP_VERSION}).")
+            return
+
+        latest_version = info.get("version", "?")
+        release_notes = info.get("notes", "Sin notas de version.")
+        force_update = bool(info.get("force", False))
+        download_url = info.get("download_url", "")
+        checksum = info.get("sha256")
+
+        skipped_version = self.settings.value("skipped_update_version", "", type=str)
+        if (not interactive) and (not force_update) and (skipped_version == str(latest_version)):
+            logging.info(f"Actualizacion {latest_version} omitida previamente por el usuario")
+            return
+
+        if not download_url:
+            logging.error("Manifest sin download_url")
+            if interactive:
+                QMessageBox.warning(self, "Actualizacion", "El servidor no devolvio una URL de descarga valida.")
+            return
+
+        msg = (
+            f"Hay una nueva version disponible: {latest_version}\n"
+            f"Tu version actual: {APP_VERSION}\n\n"
+            f"Notas:\n{release_notes}\n\n"
+            "Quieres descargar e instalar ahora?"
+        )
+        if force_update:
+            msg = msg + "\n\nEsta actualizacion es obligatoria."
+
+        buttons = QMessageBox.Yes | QMessageBox.No
+        if force_update:
+            buttons = QMessageBox.Yes
+
+        decision = QMessageBox.question(self, "Actualizacion disponible", msg, buttons)
+        if decision != QMessageBox.Yes:
+            if not force_update:
+                self.settings.setValue("skipped_update_version", str(latest_version))
+            return
+
+        # Clear skip if user accepts update
+        self.settings.setValue("skipped_update_version", "")
+
+        self._start_update_download(download_url, checksum, latest_version)
+
+    def _start_update_download(self, download_url: str, checksum: str, latest_version: str):
+        self.update_in_progress = True
+        self.update_btn.setEnabled(False)
+        self.update_btn.setText("DOWNLOADING...")
+
+        worker = threading.Thread(
+            target=self._download_update_worker,
+            args=(download_url, checksum, latest_version),
+            daemon=True,
+        )
+        worker.start()
+
+    def _download_update_worker(self, download_url: str, checksum: str, latest_version: str):
+        try:
+            logging.info(f"Descargando actualizacion {latest_version} desde {download_url}")
+            installer_path = self.updater.download_update(download_url=download_url, expected_sha256=checksum)
+            QTimer.singleShot(0, lambda: self._on_update_downloaded(str(installer_path)))
+        except UpdateError as exc:
+            QTimer.singleShot(0, lambda: self._on_update_download_error(str(exc)))
+
+    def _on_update_download_error(self, message: str):
+        logging.error(message)
+        self.update_in_progress = False
+        self.update_btn.setEnabled(True)
+        self.update_btn.setText("⬇  UPDATE")
+        QMessageBox.warning(self, "Actualizacion", f"No se pudo completar la actualizacion.\n\n{message}")
+
+    def _on_update_downloaded(self, installer_path: str):
+        logging.info(f"Instalador descargado en {installer_path}")
+        self.update_in_progress = False
+        self.update_btn.setEnabled(True)
+        self.update_btn.setText("⬇  UPDATE")
+
+        QMessageBox.information(
+            self,
+            "Actualizacion descargada",
+            "Se iniciara el instalador. La aplicacion se cerrara para completar la actualizacion.",
+        )
+
+        try:
+            self.updater.launch_installer(Path(installer_path))
+            QApplication.quit()
+        except UpdateError as exc:
+            QMessageBox.warning(self, "Actualizacion", f"No se pudo iniciar el instalador.\n\n{exc}")
 
     def poll_logs(self):
         val = log_stream.getvalue()
@@ -652,31 +786,29 @@ class ServerApp(QMainWindow):
         if running:
             self.status_pill.setText("  ●  ONLINE  ")
             self.status_pill.setStyleSheet(
-                "color: #00FF80;"
-                "background-color: #001A0D;"
-                "border: 1px solid #00FF80;"
-                "border-radius: 12px;"
+                "color: #FAFAFA;" # White
+                "background-color: transparent;"
+                "border: 1px solid #FAFAFA;"
+                "border-radius: 6px;"
                 "padding: 4px 14px;"
                 "letter-spacing: 2px;"
                 "font-weight: bold;"
                 "font-size: 9px;"
             )
-            eff = self._make_shadow(16, QColor(0, 255, 100, 100), (0, 0))
-            self.status_pill.setGraphicsEffect(eff)
+            self.status_pill.setGraphicsEffect(None)
         else:
             self.status_pill.setText("  ●  OFFLINE  ")
             self.status_pill.setStyleSheet(
-                "color: #FF3B30;"
-                "background-color: #1A0000;"
-                "border: 1px solid #FF3B30;"
-                "border-radius: 12px;"
+                "color: #F97316;" # Orange
+                "background-color: transparent;"
+                "border: 1px solid #F97316;"
+                "border-radius: 6px;"
                 "padding: 4px 14px;"
                 "letter-spacing: 2px;"
                 "font-weight: bold;"
                 "font-size: 9px;"
             )
-            eff = self._make_shadow(12, QColor(255, 59, 48, 80), (0, 0))
-            self.status_pill.setGraphicsEffect(eff)
+            self.status_pill.setGraphicsEffect(None)
 
     def start_server(self):
         if not self.server_running.is_set():
