@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.VideoView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import androidx.appcompat.app.AppCompatActivity
 import java.util.Calendar
 import com.tempestgf.steeringwheel.R
@@ -77,6 +78,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AboutActivity::class.java)
             startActivity(intent)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+
+        // Configuración del botón de actualización
+        val fabUpdate: FloatingActionButton = findViewById(R.id.fab_update)
+        fabUpdate.setOnClickListener {
+            AppUpdater(this).checkForUpdates(manual = true)
         }
 
         // Silent check for updates
