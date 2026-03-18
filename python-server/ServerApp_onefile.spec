@@ -21,7 +21,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='MobileWheelServer-1.0.1-setup',
+    name='MobileWheelServer',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

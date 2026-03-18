@@ -50,8 +50,9 @@ def main() -> int:
     update_dir = website_dir / "public" / "update"
     update_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy installer into web public/update
-    dest_installer = update_dir / installer_path.name
+    # Copy installer into web public/update with dynamic version name
+    dest_exe_name = f"MobileWheelServer-{args.version}-setup.exe"
+    dest_installer = update_dir / dest_exe_name
     shutil.copy2(installer_path, dest_installer)
 
     checksum = sha256_file(dest_installer)
