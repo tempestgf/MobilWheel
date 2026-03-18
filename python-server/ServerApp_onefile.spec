@@ -2,7 +2,7 @@
 
 a = Analysis(
     ['ServerApp.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
     datas=[('azure.tcl', '.'), ('app_logo.ico', '.'), ('theme', 'theme'), ('vJoy', 'vJoy'), ('pylmusharedmemory', 'pylmusharedmemory')],
     hiddenimports=['xbox', 'game_telemetry', 'updater', 'app_version'],

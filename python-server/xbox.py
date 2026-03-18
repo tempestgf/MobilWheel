@@ -334,7 +334,7 @@ def forward_game_telemetry(client_conn, stop_event, send_lock):
                 # IMPORTANTE: Android espera formato original de AC (0=R, 1=N, 2=1ª...)
                 # pero data.gear ya está corregido (-1=R, 0=N, 1=1ª...)
                 # así que sumamos +1 para volver al formato original
-                                speed = int(data.speed_kmh)
+                speed = int(data.speed_kmh)
                 gear = data.gear + 1  # Volver al formato original
                 rpm = int(data.rpms)
 
@@ -353,8 +353,7 @@ def forward_game_telemetry(client_conn, stop_event, send_lock):
                 t_dict["gear"] = gear
                 t_dict["rpm"] = rpm
 
-                msg = f"J:{json.dumps(t_dict)}
-"
+                msg = f"J:{json.dumps(t_dict)}\n"
                 
                 try:
                     with send_lock:
