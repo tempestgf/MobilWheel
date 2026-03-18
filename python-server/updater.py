@@ -57,6 +57,14 @@ class AppUpdater:
         filename = download_url.split("/")[-1] or "mobilewheel_update.bin"
         target_file = updates_dir / filename
 
+        if target_file.exists():
+            try:
+                target_file.unlink()
+            except PermissionError:
+                import uuid
+                filename = f"{uuid.uuid4().hex[:8]}_{filename}"
+                target_file = updates_dir / filename
+
         try:
             opener = urllib.request.build_opener()
             opener.addheaders = [("User-Agent", f"{APP_NAME}/{self.current_version}")]
@@ -85,17 +93,37 @@ class AppUpdater:
         if not installer_path.exists():
             raise UpdateError(f"Instalador no encontrado: {installer_path}")
 
-        args = [str(installer_path)]
-        if silent:
-            args.append("/S")
+        import sys
+        if hasattr(sys, 'frozen'):
+            # Estamos corriendo como ejecutable de PyInstaller
+            current_exe = Path(sys.executable)
+            bat_path = installer_path.with_suffix('.bat')
+            
+            # Script batch que espera a que cierre el actual, copia el nuevo encima y lo ejecuta
+            bat_content = f"""@echo off
+timeout /t 2 /nobreak > nul
+copy /Y "{installer_path}" "{current_exe}"
+start "" "{current_exe}"
+del "%~f0"
+"""
+            bat_path.write_text(bat_content, encoding="utf-8")
+            
+            try:
+                subprocess.Popen([str(bat_path)], shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            except Exception as exc:
+                raise UpdateError(f"No se pudo reemplazar el ejecutable: {exc}") from exc
+        else:
+            args = [str(installer_path)]
+            if silent:
+                args.append("/S")
 
-        try:
-            if os.name == "nt":
-                subprocess.Popen(args, shell=False)
-            else:
-                subprocess.Popen(args)
-        except Exception as exc:
-            raise UpdateError(f"No se pudo iniciar el instalador: {exc}") from exc
+            try:
+                if os.name == "nt":
+                    subprocess.Popen(args, shell=False)
+                else:
+                    subprocess.Popen(args)
+            except Exception as exc:
+                raise UpdateError(f"No se pudo iniciar el instalador: {exc}") from exc
 
     @staticmethod
     def _sha256_file(file_path: Path) -> str:
