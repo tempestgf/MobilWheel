@@ -288,9 +288,9 @@ class ACTelemetryReader:
     Professional Assetto Corsa telemetry reader using shared memory.
     Reads physics, graphics, and static to provide full Telemetry.
     """
-    PHYSICS_MAP_NAME = "Local\acpmf_physics"
-    GRAPHIC_MAP_NAME = "Local\acpmf_graphics"
-    STATIC_MAP_NAME = "Local\acpmf_static"
+    PHYSICS_MAP_NAME = r"Local\acpmf_physics"
+    GRAPHIC_MAP_NAME = r"Local\acpmf_graphic"
+    STATIC_MAP_NAME = r"Local\acpmf_static"
 
     def __init__(self):
         self._physics_mmap = None
@@ -375,9 +375,9 @@ class ACTelemetryReader:
                 tyre_dirty_level=tuple(phys.tyreDirtyLevel),
                 tyre_core_temperature=tuple(phys.tyreCoreTemperature),
                 drs=phys.drs,
-                tc=phys.tc,
+                tc=float(graph.TC),
                 pitch=phys.pitch,
-                abs=phys.abs,
+                abs=float(graph.ABS),
                 clutch=phys.clutch,
                 brake_temp=tuple(phys.brakeTemp),
                 water_temp=phys.waterTemp,

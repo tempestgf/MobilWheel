@@ -78,13 +78,26 @@ class VjoyInstaller:
     
     def is_vjoy_installed(self):
         """Verifica si vJoy está instalado en el sistema"""
+        # Primero revisamos si el driver y la DLL de vJoy existen en las rutas de Windows
+        import os
+        vjoy_paths = [
+            r"C:\Program Files\vJoy\x64\vJoyInterface.dll",
+            r"C:\Program Files\vJoy\x86\vJoyInterface.dll",
+            r"C:\Program Files (x86)\vJoy\x86\vJoyInterface.dll"
+        ]
+        
+        driver_found = any(os.path.exists(p) for p in vjoy_paths)
+        if driver_found:
+            logger.info("✓ El driver de vJoy está instalado en el sistema")
+            return True
+            
         try:
-            # Intenta importar pyvjoy o verificar registro de Windows
+            # Intenta importar pyvjoy como alternativa
             import pyvjoy
             logger.info("✓ pyvJoy está disponible")
             return True
         except ImportError:
-            logger.info("✗ pyvJoy no está instalado")
+            logger.info("✗ pyvJoy no está instalado y no se encontró el driver vJoy")
             return False
     
     def vjoy_path_exists(self):
@@ -127,22 +140,22 @@ class VjoyInstaller:
             try:
                 logger.debug(f"Intento de descarga {attempt}/{RETRY_ATTEMPTS}")
                 
-                # Crear request con timeout
-                req = urllib.request.Request(
-                    VJOY_DOWNLOAD_URL,
-                    headers={'User-Agent': 'Mobile-Wheel-Server/1.0'}
-                )
-                
-                def download_progress(block_num: int, block_size: int, total_size: int) -> None:
-                    if progress_callback and total_size > 0:
-                        downloaded = block_num * block_size
-                        percent = min(100, int(downloaded * 100 / total_size))
-                        progress_callback(percent)
-                
-                # Establecer timeout en sockets
-                socket.setdefaulttimeout(CONNECTION_TIMEOUT)
-                
-                urllib.request.urlretrieve(req, zip_path, download_progress)
+# Usar urlopen para poder usar req y reportar progreso
+                with urllib.request.urlopen(req) as response, open(zip_path, 'wb') as out_file:
+                    total_size = int(response.getheader('Content-Length', 0))
+                    block_size = max(4096, total_size // 100) if total_size else 8192
+                    downloaded = 0
+                    
+                    while True:
+                        buffer = response.read(block_size)
+                        if not buffer:
+                            break
+                        downloaded += len(buffer)
+                        out_file.write(buffer)
+                        
+                        if progress_callback and total_size > 0:
+                            percent = min(100, int(downloaded * 100 / total_size))
+                            progress_callback(percent)
                 
                 # Validar que el archivo se descargó
                 if not zip_path.exists():

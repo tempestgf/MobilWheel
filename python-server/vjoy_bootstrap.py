@@ -75,6 +75,11 @@ class VjoyInstallationDialog(QDialog):
         self.cancel_button.clicked.connect(self.cancel_installation)
         buttons_layout.addWidget(self.cancel_button)
         
+        self.manual_button = QPushButton("Instalar vJoy manualmente")
+        self.manual_button.clicked.connect(self.open_manual_download)
+        self.manual_button.setVisible(False)
+        buttons_layout.addWidget(self.manual_button)
+        
         buttons_layout.addStretch()
         
         layout.addLayout(buttons_layout)
@@ -127,7 +132,12 @@ class VjoyInstallationDialog(QDialog):
         if success:
             self.log_text.append("✓ ¡Instalación completada!")
         else:
-            self.log_text.append("✗ La instalación falló")
+            self.log_text.append("✗ La instalación falló (Vjoy)")
+            self.manual_button.setVisible(True)
+
+    def open_manual_download(self):
+        import webbrowser
+        webbrowser.open('https://www.vjoy.org/es/download-for-windows')
     
     def cancel_installation(self):
         """Cancelar o cerrar"""
@@ -145,6 +155,9 @@ def check_and_setup_vjoy(parent_widget=None, only_check=False):
     Returns:
         bool: True si vJoy está disponible, False en caso contrario
     """
+    if sys.platform != 'win32':
+        return True
+        
     helper = VjoySetupHelper()
     status = helper.check_vjoy_status()
     

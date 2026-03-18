@@ -615,8 +615,11 @@ class ServerApp(QMainWindow):
             return
 
         if interactive:
+            logging.info("Buscando actualizaciones manuales...")
             self.update_btn.setEnabled(False)
             self.update_btn.setText("CHECKING...")
+        else:
+            logging.info("Buscando actualizaciones automáticas...")
 
         worker = threading.Thread(target=self._check_for_updates_worker, args=(interactive,), daemon=True)
         worker.start()
@@ -624,9 +627,13 @@ class ServerApp(QMainWindow):
     def _check_for_updates_worker(self, interactive: bool):
         try:
             info = self.updater.check_for_updates()
+            logging.info(f"Manifest obtenido: version {info.get('version', '?')}")
             QTimer.singleShot(0, lambda: self._on_update_manifest(interactive, info))
         except UpdateError as exc:
             QTimer.singleShot(0, lambda: self._on_update_check_error(interactive, str(exc)))
+        except Exception as exc:
+            logging.error(f"Error checking updates: {exc}")
+            QTimer.singleShot(0, lambda: self._on_update_check_error(interactive, f"Error interno comprobando actualización: {str(exc)}"))
 
     def _on_update_check_error(self, interactive: bool, message: str):
         logging.warning(message)
