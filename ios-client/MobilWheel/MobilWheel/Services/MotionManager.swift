@@ -1,12 +1,8 @@
-import Foundation
 import CoreMotion
-import Combine
+import UIKit
 
 /// Reads device accelerometer and converts tilt to steering angle
 final class MotionManager: ObservableObject {
-    @Published var currentAngle: Double = 0.0  // -10.0 to +10.0
-    @Published var rawPitch: Double = 0.0
-
     private let motionManager = CMMotionManager()
     private var lastSentAngle: Double = 0.0
     private let sendThreshold: Double = 0.010
@@ -24,17 +20,29 @@ final class MotionManager: ObservableObject {
             let x = data.acceleration.x
             let y = data.acceleration.y
 
-            // Calculate tilt angle from accelerometer (same as Android: atan2(y, x))
-            let rawAngle = atan2(y, x) * (180.0 / .pi)
-            self.rawPitch = rawAngle
+            // Accelerometer axes are fixed to the hardware (portrait frame).
+            // We need to rotate them into screen coordinates so steering
+            // always matches the visible UI regardless of landscape orientation.
+            //
+            // Landscape-left  (home btn right): screenRight = +devY, screenUp = −devX → atan2( y, −x)
+            // Landscape-right (home btn left):  screenRight = −devY, screenUp = +devX → atan2(−y,  x)
+            let orientation = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first?.interfaceOrientation
+
+            let rawAngle: Double
+            if orientation == .landscapeRight {
+                rawAngle = atan2(y, -x) * (180.0 / .pi)
+            } else {
+                rawAngle = atan2(-y, x) * (180.0 / .pi)
+            }
 
             // Normalize to -10...+10 range based on max steering angle
-            let normalized = (rawAngle / self.maxSteeringAngle) * 10.0
+            let normalized = -(rawAngle / self.maxSteeringAngle) * 10.0
             let clamped = max(-10.0, min(10.0, normalized))
 
             // Only send if change exceeds threshold
             if abs(clamped - self.lastSentAngle) > self.sendThreshold {
-                self.currentAngle = clamped
                 self.lastSentAngle = clamped
                 onUpdate(clamped)
             }

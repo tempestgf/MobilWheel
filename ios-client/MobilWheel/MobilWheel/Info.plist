@@ -4,10 +4,12 @@
 <dict>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
+    <key>UIUserInterfaceStyle</key>
+    <string>Dark</string>
     <key>UILaunchScreen</key>
     <dict>
         <key>UIColorName</key>
-        <string>AccentColor</string>
+        <string>LaunchBackground</string>
     </dict>
     <key>UIRequiredDeviceCapabilities</key>
     <array>

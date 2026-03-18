@@ -1,12 +1,18 @@
 import SwiftUI
 import UIKit
 
-/// The main steering wheel / racing HUD view — matches Android layout
+// MARK: - MobilWheel Palette
+let mwAccent    = Color(red: 1.0, green: 0.427, blue: 0.0)
+private let mwDimGrey  = Color.white.opacity(0.08)
+private let mwBorder   = Color.white.opacity(0.12)
+
+/// The main steering wheel / racing HUD view
 struct WheelView: View {
     @EnvironmentObject var connection: ConnectionManager
     @EnvironmentObject var settings: SettingsManager
     @Environment(\.dismiss) var dismiss
     @StateObject private var motion = MotionManager()
+    @StateObject private var volumeHandler = VolumeButtonHandler()
 
     @State private var throttleValue: Int = 0
     @State private var brakeValue: Int = 0
@@ -14,6 +20,15 @@ struct WheelView: View {
     @State private var showExitConfirm = false
     @State private var batteryLevel: Int = 0
     @State private var batteryTimer: Timer?
+    @State private var flashL1 = false
+    @State private var flashL2 = false
+    @State private var flashR1 = false
+    @State private var flashR2 = false
+
+    @State private var lastGear: Int = 1
+    @State private var displayedGear: Int = 1
+    @State private var gearShiftDirection: Edge = .bottom
+    @State private var gearDebounceWork: DispatchWorkItem?
 
     var body: some View {
         GeometryReader { geo in
@@ -27,21 +42,38 @@ struct WheelView: View {
                         serverAddress: connection.serverAddress,
                         rpm: connection.telemetry.rpm,
                         batteryLevel: batteryLevel,
+                        latencyMs: connection.latencyMs,
                         onBackTap: { showExitConfirm = true }
                     )
                     Spacer()
 
                     // ── Bottom labels ──
-                    HStack {
+                    HStack(spacing: 0) {
                         Text("BRAKE")
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
-                            .foregroundColor(.red.opacity(0.5))
-                            .frame(maxWidth: .infinity)
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .foregroundColor(.red.opacity(0.35))
+                            .tracking(3)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(mwBorder, lineWidth: 1)
+                            )
+                            .padding(.leading, 8)
+                            .padding(.trailing, 4)
+
                         Text("GAS")
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
-                            .foregroundColor(.green.opacity(0.5))
-                            .frame(maxWidth: .infinity)
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .foregroundColor(.green.opacity(0.35))
+                            .tracking(3)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(mwBorder, lineWidth: 1)
+                            )
+                            .padding(.leading, 4)
+                            .padding(.trailing, 8)
                     }
+                    .frame(height: 32)
                     .padding(.bottom, 8)
                 }
 
@@ -49,31 +81,26 @@ struct WheelView: View {
                 HStack(spacing: 0) {
                     // LEFT HALF: Brake side
                     ZStack {
-                        // Brake fill overlay
-                        VStack {
-                            Spacer()
-                            Rectangle()
-                                .fill(Color.red.opacity(0.15))
-                                .frame(height: geo.size.height * CGFloat(brakeValue) / 100.0)
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-
                         // Button zones with labels
                         VStack(spacing: 0) {
                             // L1 / D
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                    .fill(flashL1 ? mwAccent.opacity(0.15) : Color.clear)
+                                    .padding(8)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(mwDimGrey, lineWidth: 1)
                                     .padding(8)
                                 Text("L1 / D")
                                     .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                                    .foregroundColor(.white.opacity(0.4))
+                                    .foregroundColor(.white.opacity(0.25))
+                                    .tracking(2)
                             }
                             .frame(maxHeight: .infinity)
 
                             // FFB indicator
                             HStack(spacing: 0) {
-                                FFBIndicator(value: brakeValue)
+                                FFBIndicator(value: connection.telemetry.ffb)
                                     .frame(width: 30)
                                     .padding(.leading, 12)
                                 Spacer()
@@ -83,42 +110,56 @@ struct WheelView: View {
                             // L2 / E
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                    .fill(flashL2 ? mwAccent.opacity(0.15) : Color.clear)
+                                    .padding(8)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(mwDimGrey, lineWidth: 1)
                                     .padding(8)
                                 Text("L2 / E")
                                     .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                                    .foregroundColor(.white.opacity(0.4))
+                                    .foregroundColor(.white.opacity(0.25))
+                                    .tracking(2)
                             }
                             .frame(maxHeight: .infinity)
                         }
                     }
-                    .background(
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.red.opacity(0.15))
+                            .frame(height: max(0, CGFloat(brakeValue) / 100.0 * (geo.size.height - 80)))
+                            .animation(.easeOut(duration: 0.12), value: brakeValue)
+                            .allowsHitTesting(false)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                            .stroke(mwBorder, lineWidth: 1)
                     )
                     .padding(.leading, 8)
                     .padding(.vertical, 40)
-
-                    // CENTER: Gear + Speed HUD
                     ZStack {
                         // Concentric rings
                         Circle()
-                            .stroke(Color.orange.opacity(0.15), lineWidth: 1)
+                            .stroke(mwAccent.opacity(0.2), lineWidth: 1)
                             .frame(width: 220, height: 220)
                         Circle()
-                            .stroke(Color.orange.opacity(0.25), lineWidth: 1)
+                            .stroke(mwAccent.opacity(0.35), lineWidth: 1.5)
                             .frame(width: 180, height: 180)
 
                         // Gear display — counter-rotates
                         VStack(spacing: 2) {
                             Text("GEAR")
-                                .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                .foregroundColor(.green.opacity(0.7))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .foregroundColor(mwAccent.opacity(0.8))
+                                .tracking(4)
 
-                            Text(connection.telemetry.gearLabel)
+                            Text(displayedGearLabel)
+                                .frame(width: 120, height: 110)
                                 .font(.system(size: 90, weight: .bold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.9))
-                                .shadow(color: .white.opacity(0.1), radius: 10)
+                                .foregroundColor(.white.opacity(0.92))
+                                .shadow(color: mwAccent.opacity(0.08), radius: 20)
+                                .contentTransition(.numericText(countsDown: gearShiftDirection == .top))
+                                .animation(.interpolatingSpring(stiffness: 300, damping: 25), value: displayedGear)
                         }
                         .rotationEffect(.degrees(-smoothedRotation))
                     }
@@ -126,25 +167,20 @@ struct WheelView: View {
 
                     // RIGHT HALF: Throttle side
                     ZStack {
-                        // Throttle fill overlay
-                        VStack {
-                            Spacer()
-                            Rectangle()
-                                .fill(Color.green.opacity(0.2))
-                                .frame(height: geo.size.height * CGFloat(throttleValue) / 100.0)
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-
                         // Button zones with labels
                         VStack(spacing: 0) {
                             // R1 / F
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                    .fill(flashR1 ? mwAccent.opacity(0.15) : Color.clear)
+                                    .padding(8)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(mwDimGrey, lineWidth: 1)
                                     .padding(8)
                                 Text("R1 / F")
                                     .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                                    .foregroundColor(.white.opacity(0.4))
+                                    .foregroundColor(.white.opacity(0.25))
+                                    .tracking(2)
                             }
                             .frame(maxHeight: .infinity)
 
@@ -166,18 +202,30 @@ struct WheelView: View {
                             // R2 / G
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                    .fill(flashR2 ? mwAccent.opacity(0.15) : Color.clear)
+                                    .padding(8)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(mwDimGrey, lineWidth: 1)
                                     .padding(8)
                                 Text("R2 / G")
                                     .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                                    .foregroundColor(.white.opacity(0.4))
+                                    .foregroundColor(.white.opacity(0.25))
+                                    .tracking(2)
                             }
                             .frame(maxHeight: .infinity)
                         }
                     }
-                    .background(
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.green.opacity(0.2))
+                            .frame(height: max(0, CGFloat(throttleValue) / 100.0 * (geo.size.height - 80)))
+                            .animation(.easeOut(duration: 0.12), value: throttleValue)
+                            .allowsHitTesting(false)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                            .stroke(mwBorder, lineWidth: 1)
                     )
                     .padding(.trailing, 8)
                     .padding(.vertical, 40)
@@ -198,8 +246,8 @@ struct WheelView: View {
                             brakeValue = 0
                             connection.send(.brake(0))
                         },
-                        onTopButton: { connection.send(.leftTop) },
-                        onBottomButton: { connection.send(.leftBottom) }
+                        onTopButton: { connection.send(.leftTop); flashButton($flashL1) },
+                        onBottomButton: { connection.send(.leftBottom); flashButton($flashL2) }
                     )
 
                     TouchZone(
@@ -215,11 +263,12 @@ struct WheelView: View {
                             throttleValue = 0
                             connection.send(.throttle(0))
                         },
-                        onTopButton: { connection.send(.rightTop) },
-                        onBottomButton: { connection.send(.rightBottom) }
+                        onTopButton: { connection.send(.rightTop); flashButton($flashR1) },
+                        onBottomButton: { connection.send(.rightBottom); flashButton($flashR2) }
                     )
                 }
-                .ignoresSafeArea()
+                .padding(.top, 32)
+                .ignoresSafeArea(edges: [.bottom, .leading, .trailing])
             }
         }
         .onAppear {
@@ -228,6 +277,9 @@ struct WheelView: View {
             batteryTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
                 updateBattery()
             }
+            volumeHandler.onVolumeUp = { connection.send(.volumeUp) }
+            volumeHandler.onVolumeDown = { connection.send(.volumeDown) }
+            volumeHandler.start()
             motion.start(maxAngle: settings.steeringAngle) { angle in
                 connection.send(.steering(angle))
                 let displayAngle = (angle / 10.0) * settings.steeringAngle
@@ -237,10 +289,33 @@ struct WheelView: View {
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             batteryTimer?.invalidate()
+            batteryTimer = nil
+            gearDebounceWork?.cancel()
+            gearDebounceWork = nil
             motion.stop()
+            volumeHandler.stop()
         }
         .onChange(of: settings.steeringAngle) { newValue in
             motion.updateMaxAngle(newValue)
+        }
+        .onChange(of: connection.telemetry.gear) { newGear in
+            gearDebounceWork?.cancel()
+            // Neutral (1) between shifts — skip it unless staying in N
+            if newGear == 1 && lastGear != 0 && lastGear != 1 {
+                let capturedDisplayed = displayedGear
+                let work = DispatchWorkItem { [self] in
+                    gearShiftDirection = newGear > capturedDisplayed ? .bottom : .top
+                    lastGear = newGear
+                    displayedGear = newGear
+                }
+                gearDebounceWork = work
+                lastGear = newGear
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: work)
+            } else {
+                gearShiftDirection = newGear > displayedGear ? .bottom : .top
+                lastGear = newGear
+                displayedGear = newGear
+            }
         }
         .alert("Exit?", isPresented: $showExitConfirm) {
             Button("Disconnect & Exit") {
@@ -252,13 +327,28 @@ struct WheelView: View {
             Text("Disconnect from server and return to menu?")
         }
         .statusBarHidden(true)
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private var displayedGearLabel: String {
+        switch displayedGear {
+        case 0: return "R"
+        case 1: return "N"
+        default: return "\(displayedGear - 1)"
+        }
     }
 
     private func updateBattery() {
         UIDevice.current.isBatteryMonitoringEnabled = true
         batteryLevel = Int(UIDevice.current.batteryLevel * 100)
         if batteryLevel < 0 { batteryLevel = 100 }
+    }
+
+    private func flashButton(_ flag: Binding<Bool>) {
+        withAnimation(.easeIn(duration: 0.05)) { flag.wrappedValue = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.easeOut(duration: 0.2)) { flag.wrappedValue = false }
+        }
     }
 }
 
@@ -269,48 +359,56 @@ struct TopStatusBar: View {
     let serverAddress: String
     let rpm: Int
     let batteryLevel: Int
+    let latencyMs: Int
     let onBackTap: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            Button(action: onBackTap) {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(isConnected ? Color.green : Color.red)
-                        .frame(width: 10, height: 10)
-                    Text(isConnected ? "CONNECTED" : "DISCONNECTED")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundColor(isConnected ? .green : .red)
+        ZStack {
+            // Left: connection status
+            HStack {
+                Button(action: onBackTap) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(isConnected ? Color.green : Color.red)
+                            .frame(width: 10, height: 10)
+                        Text(isConnected ? "CONNECTED" : "DISCONNECTED")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundColor(isConnected ? .green : .red)
+                    }
                 }
+
+                Text(serverAddress)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.3))
+
+                Spacer()
             }
 
-            Text(serverAddress)
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundColor(.white.opacity(0.5))
-
-            Spacer()
-
+            // Center: RPM
             VStack(spacing: 2) {
                 Text("\(rpm)  RPM")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundColor(.green.opacity(0.8))
+                    .foregroundColor(mwAccent.opacity(0.9))
                 RPMShiftLights(rpm: rpm)
             }
 
-            Spacer()
+            // Right: ping, battery, time
+            HStack {
+                Spacer()
 
-            HStack(spacing: 12) {
-                Text("PING: <5ms")
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.4))
+                HStack(spacing: 12) {
+                    Text("PING: \(latencyMs)ms")
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundColor(latencyMs < 20 ? .green.opacity(0.5) : latencyMs < 50 ? mwAccent.opacity(0.5) : .red.opacity(0.5))
 
-                Text("BAT: \(batteryLevel)%")
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.4))
+                    Text("BAT: \(batteryLevel)%")
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.3))
 
-                Text(timeString())
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.4))
+                    Text(timeString())
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.3))
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -371,13 +469,13 @@ struct FFBIndicator: View {
                     let barIndex = 7 - i
                     let threshold = barIndex * 12
                     RoundedRectangle(cornerRadius: 1)
-                        .fill(value > threshold ? Color.orange : Color.gray.opacity(0.3))
+                        .fill(value > threshold ? mwAccent : Color.gray.opacity(0.15))
                         .frame(height: 6)
                 }
             }
             Text("FFB")
                 .font(.system(size: 7, weight: .bold, design: .monospaced))
-                .foregroundColor(.white.opacity(0.3))
+                .foregroundColor(.white.opacity(0.2))
                 .padding(.top, 2)
         }
     }
@@ -409,7 +507,8 @@ struct TouchZone: UIViewRepresentable {
         view.onDragEnd = onDragEnd
         view.onTopButton = onTopButton
         view.onBottomButton = onBottomButton
-        view.isMultipleTouchEnabled = true
+        view.isMultipleTouchEnabled = false
+        view.isExclusiveTouch = true
         view.backgroundColor = .clear
         return view
     }
@@ -431,6 +530,8 @@ class TouchZoneUIView: UIView {
     var onTopButton: (() -> Void)?
     var onBottomButton: (() -> Void)?
 
+    // Track the specific touch driving the drag to avoid multi-touch confusion
+    private weak var activeTouch: UITouch?
     private var touchStartY: CGFloat = 0
     private var touchStartTime: TimeInterval = 0
     private var isDragging = false
@@ -440,48 +541,64 @@ class TouchZoneUIView: UIView {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // If we already have an active drag, ignore new touches
+        if activeTouch != nil { return }
         guard let touch = touches.first else { return }
+        activeTouch = touch
         touchStartY = touch.location(in: self).y
         touchStartTime = touch.timestamp
         isDragging = false
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let currentY = touch.location(in: self).y
+        guard let tracked = activeTouch, touches.contains(tracked) else { return }
+        let currentY = tracked.location(in: self).y
         let deltaY = currentY - touchStartY
 
         if abs(deltaY) > swipeThresholdPts {
             isDragging = true
-            let progress = Int((abs(deltaY) * CGFloat(sensitivity)).clamped(to: 0...100))
+            // Map drag distance proportionally to the full zone height
+            // so you need to drag the entire zone to reach 100%.
+            let fraction = (abs(deltaY) - swipeThresholdPts) / (bounds.height - swipeThresholdPts) * 4.0
+            let progress = Int((fraction * 100).clamped(to: 0...100))
             onDrag?(progress)
         }
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let currentY = touch.location(in: self).y
-        let deltaY = abs(currentY - touchStartY)
-        let elapsed = touch.timestamp - touchStartTime
+        guard let tracked = activeTouch, touches.contains(tracked) else { return }
 
-        if deltaY <= swipeThresholdPts && elapsed <= clickTimeLimit {
-            let tapY = touch.location(in: self).y
-            let isTop = tapY < bounds.height / 2
-            if isTop {
-                onTopButton?()
-            } else {
-                onBottomButton?()
-            }
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        } else if isDragging {
+        if isDragging {
+            // Always release the drag value
             onDragEnd?()
+        } else {
+            // Only treat as tap if it was short and didn't move far
+            let currentY = tracked.location(in: self).y
+            let deltaY = abs(currentY - touchStartY)
+            let elapsed = tracked.timestamp - touchStartTime
+
+            if deltaY <= swipeThresholdPts && elapsed <= clickTimeLimit {
+                let isTop = currentY < bounds.height / 2
+                if isTop {
+                    onTopButton?()
+                } else {
+                    onBottomButton?()
+                }
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+            }
         }
-        isDragging = false
+        resetTouch()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Always release on cancel — system interrupted the touch
         if isDragging { onDragEnd?() }
+        resetTouch()
+    }
+
+    private func resetTouch() {
+        activeTouch = nil
         isDragging = false
     }
 }
@@ -490,4 +607,28 @@ extension CGFloat {
     func clamped(to range: ClosedRange<CGFloat>) -> CGFloat {
         return Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
+}
+
+// MARK: - Previews
+
+#Preview("Wheel – Connected") {
+    let conn = ConnectionManager()
+    conn.isConnected = true
+    conn.serverAddress = "192.168.1.100"
+    conn.telemetry = TelemetryData(speed: 187, gear: 5, rpm: 5400)
+
+    return WheelView()
+        .environmentObject(conn)
+        .environmentObject(SettingsManager())
+}
+
+#Preview("Wheel – Disconnected") {
+    let conn = ConnectionManager()
+    conn.isConnected = false
+    conn.serverAddress = ""
+    conn.telemetry = TelemetryData(speed: 0, gear: 1, rpm: 0)
+
+    return WheelView()
+        .environmentObject(conn)
+        .environmentObject(SettingsManager())
 }

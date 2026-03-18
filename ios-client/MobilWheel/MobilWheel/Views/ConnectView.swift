@@ -38,7 +38,8 @@ struct ConnectView: View {
                         TextField("192.168.1.100", text: $manualIP)
                             .font(.system(size: 16, design: .monospaced))
                             .foregroundColor(.white)
-                            .keyboardType(.decimalPad)
+                            .keyboardType(.numbersAndPunctuation)
+                            .autocorrectionDisabled()
                             .padding(12)
                             .background(Color.white.opacity(0.1))
                             .cornerRadius(8)
@@ -51,7 +52,7 @@ struct ConnectView: View {
                         }) {
                             Image(systemName: "arrow.right.circle.fill")
                                 .font(.system(size: 32))
-                                .foregroundColor(.blue)
+                                .foregroundColor(mwAccent)
                         }
                     }
                 }
@@ -76,7 +77,7 @@ struct ConnectView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.blue.opacity(0.3))
+                    .background(mwAccent.opacity(0.3))
                     .cornerRadius(8)
                 }
                 .padding(.horizontal, 24)
@@ -96,7 +97,7 @@ struct ConnectView: View {
                             }) {
                                 HStack {
                                     Image(systemName: "desktopcomputer")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(mwAccent)
                                     Text(server)
                                         .font(.system(size: 14, design: .monospaced))
                                         .foregroundColor(.white)
@@ -144,4 +145,10 @@ struct ConnectView: View {
         }
         .navigationBarHidden(true)
     }
+}
+
+#Preview {
+    ConnectView()
+        .environmentObject(ConnectionManager())
+        .environmentObject(SettingsManager())
 }

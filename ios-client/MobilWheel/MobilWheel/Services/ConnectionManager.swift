@@ -14,6 +14,9 @@ final class ConnectionManager: ObservableObject {
     private var udpListener: NWListener?
     private var commandQueue = DispatchQueue(label: "com.mobilwheel.commands", qos: .userInteractive)
     private let serverPort: UInt16 = 12345
+    private var pingTimer: Timer?
+    private var pingSentAt: CFAbsoluteTime = 0
+    private var receiveBuffer = ""
 
     // MARK: - UDP Discovery
 
@@ -79,9 +82,11 @@ final class ConnectionManager: ObservableObject {
                 case .ready:
                     self?.isConnected = true
                     self?.startReceiving()
+                    self?.startPingTimer()
                 case .failed, .cancelled:
                     self?.isConnected = false
                     self?.tcpConnection = nil
+                    self?.stopPingTimer()
                 default:
                     break
                 }
@@ -93,8 +98,10 @@ final class ConnectionManager: ObservableObject {
     }
 
     func disconnect() {
+        stopPingTimer()
         tcpConnection?.cancel()
         tcpConnection = nil
+        receiveBuffer = ""
         DispatchQueue.main.async {
             self.isConnected = false
             self.serverAddress = ""
@@ -113,36 +120,65 @@ final class ConnectionManager: ObservableObject {
         })
     }
 
-    func sendRaw(_ string: String) {
-        guard let connection = tcpConnection, isConnected else { return }
-        guard let data = string.data(using: .utf8) else { return }
-        connection.send(content: data, completion: .contentProcessed { _ in })
-    }
-
     // MARK: - Receive Telemetry
 
     private func startReceiving() {
         guard let connection = tcpConnection else { return }
         connection.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self] data, _, isComplete, error in
-            if let data = data, let message = String(data: data, encoding: .utf8) {
-                // Can receive multiple lines at once
-                let lines = message.components(separatedBy: "\n")
-                for line in lines {
-                    if let telemetry = TelemetryData.parse(line) {
+            guard let self else { return }
+            if let data = data, let chunk = String(data: data, encoding: .utf8) {
+                self.receiveBuffer += chunk
+                // Process only complete newline-terminated lines
+                while let newlineRange = self.receiveBuffer.range(of: "\n") {
+                    let line = String(self.receiveBuffer[self.receiveBuffer.startIndex..<newlineRange.lowerBound])
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    self.receiveBuffer = String(self.receiveBuffer[newlineRange.upperBound...])
+                    if line == "PONG" {
+                        let rtt = CFAbsoluteTimeGetCurrent() - self.pingSentAt
+                        let ms = Int(rtt * 1000)
                         DispatchQueue.main.async {
-                            self?.telemetry = telemetry
+                            self.latencyMs = ms
+                        }
+                    } else if let telemetry = TelemetryData.parse(line) {
+                        DispatchQueue.main.async {
+                            self.telemetry = telemetry
                         }
                     }
                 }
             }
             if isComplete || error != nil {
                 DispatchQueue.main.async {
-                    self?.isConnected = false
+                    self.isConnected = false
                 }
                 return
             }
-            // Continue receiving
-            self?.startReceiving()
+            self.startReceiving()
+        }
+    }
+
+    // MARK: - Ping
+
+    private func startPingTimer() {
+        stopPingTimer()
+        DispatchQueue.main.async {
+            self.pingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+                self?.sendPing()
+            }
+            self.sendPing()
+        }
+    }
+
+    private func stopPingTimer() {
+        pingTimer?.invalidate()
+        pingTimer = nil
+    }
+
+    private func sendPing() {
+        guard let connection = tcpConnection, isConnected else { return }
+        let data = "PING\n".data(using: .utf8)!
+        commandQueue.async { [weak self] in
+            self?.pingSentAt = CFAbsoluteTimeGetCurrent()
+            connection.send(content: data, completion: .contentProcessed { _ in })
         }
     }
 }

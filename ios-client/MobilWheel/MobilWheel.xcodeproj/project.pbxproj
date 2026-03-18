@@ -7,17 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A10001 /* MobilWheelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001; };
-		A10002 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002; };
-		A10003 /* WheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003; };
-		A10004 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004; };
-		A10005 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005; };
-		A10006 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006; };
-		A10007 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007; };
-		A10008 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008; };
-		A10009 /* TelemetryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009; };
-		A10010 /* SteeringInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010; };
-		A10011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10011; };
+		A10001 /* MobilWheelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001 /* MobilWheelApp.swift */; };
+		A10002 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002 /* MainMenuView.swift */; };
+		A10003 /* WheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003 /* WheelView.swift */; };
+		A10004 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* SettingsView.swift */; };
+		A10005 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005 /* ConnectView.swift */; };
+		A10006 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006 /* ConnectionManager.swift */; };
+		A10007 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007 /* MotionManager.swift */; };
+		A10008 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* SettingsManager.swift */; };
+		A10009 /* TelemetryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009 /* TelemetryData.swift */; };
+		A10010 /* SteeringInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* SteeringInput.swift */; };
+		A10011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10011 /* Assets.xcassets */; };
+		A10013 /* VolumeButtonHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10013 /* VolumeButtonHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		B10010 /* SteeringInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteeringInput.swift; sourceTree = "<group>"; };
 		B10011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10013 /* VolumeButtonHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeButtonHandler.swift; sourceTree = "<group>"; };
 		B10099 /* MobilWheel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MobilWheel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -62,7 +64,6 @@
 				B10012 /* Info.plist */,
 				B10011 /* Assets.xcassets */,
 				D10003 /* Views */,
-				D10004 /* ViewModels */,
 				D10005 /* Models */,
 				D10006 /* Services */,
 			);
@@ -80,13 +81,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		D10004 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
 		D10005 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -102,6 +96,7 @@
 				B10006 /* ConnectionManager.swift */,
 				B10007 /* MotionManager.swift */,
 				B10008 /* SettingsManager.swift */,
+				B10013 /* VolumeButtonHandler.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -119,7 +114,7 @@
 /* Begin PBXNativeTarget section */
 		E10001 /* MobilWheel */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F10003;
+			buildConfigurationList = F10003 /* Build configuration list for PBXNativeTarget "MobilWheel" */;
 			buildPhases = (
 				E10002 /* Sources */,
 				C10001 /* Frameworks */,
@@ -149,7 +144,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F10001;
+			buildConfigurationList = F10001 /* Build configuration list for PBXProject "MobilWheel" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -193,6 +188,7 @@
 				A10008 /* SettingsManager.swift in Sources */,
 				A10009 /* TelemetryData.swift in Sources */,
 				A10010 /* SteeringInput.swift in Sources */,
+				A10013 /* VolumeButtonHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,12 +254,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2H2S83Z2PV;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MobilWheel/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MobilWheel;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -287,12 +283,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2H2S83Z2PV;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MobilWheel/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MobilWheel;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -331,7 +327,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = E10099 /* Project object */;
 }

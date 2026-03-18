@@ -73,7 +73,7 @@ struct SettingsView: View {
                         Spacer()
                         Toggle("", isOn: $settings.telemetryEnabled)
                             .labelsHidden()
-                            .tint(.blue)
+                            .tint(mwAccent)
                     }
                     .padding(.horizontal, 24)
 
@@ -92,7 +92,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -118,8 +118,13 @@ struct SettingSlider: View {
                     .foregroundColor(.white)
             }
             Slider(value: $value, in: range, step: step)
-                .tint(.blue)
+                .tint(mwAccent)
         }
         .padding(.horizontal, 24)
     }
+}
+
+#Preview {
+    SettingsView()
+        .environmentObject(SettingsManager())
 }

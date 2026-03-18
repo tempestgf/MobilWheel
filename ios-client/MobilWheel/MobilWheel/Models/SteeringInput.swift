@@ -1,12 +1,5 @@
 import Foundation
 
-/// Represents the current state of all steering inputs
-struct SteeringInput {
-    var steeringAngle: Double = 0.0   // -10.0 to +10.0
-    var throttle: Int = 0              // 0-100
-    var brake: Int = 0                 // 0-100
-}
-
 /// Commands sent to the server
 enum ServerCommand {
     case steering(Double)       // A:<angle>
