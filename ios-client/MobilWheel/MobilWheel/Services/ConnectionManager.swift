@@ -113,11 +113,7 @@ final class ConnectionManager: ObservableObject {
     func send(_ command: ServerCommand) {
         guard let connection = tcpConnection, isConnected else { return }
         guard let data = command.rawCommand.data(using: .utf8) else { return }
-        connection.send(content: data, completion: .contentProcessed { error in
-            if let error = error {
-                print("Send error: \(error)")
-            }
-        })
+        connection.send(content: data, completion: .contentProcessed { _ in })
     }
 
     // MARK: - Receive Telemetry
