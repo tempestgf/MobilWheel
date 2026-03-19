@@ -5,9 +5,9 @@ import logging
 from io import StringIO
 from pathlib import Path
 
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+from PyQt5.QtWidgets import (QApplication, QListView, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel,
-                             QProgressBar, QTextEdit, QGridLayout, QCheckBox,
+                             QProgressBar, QTextEdit, QGridLayout, QCheckBox, QComboBox,
                              QGraphicsDropShadowEffect, QFrame, QSizePolicy,
                              QMessageBox)
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer, Qt, QSettings
@@ -28,6 +28,219 @@ try:
 except ImportError:
     TELEMETRY_AVAILABLE = False
     logging.warning("Game Telemetry module not available")
+
+I18N = {
+    'en': {
+        'status_stop': 'STATUS: STOPPED',
+        'status_run': 'STATUS: RUNNING',
+        'btn_start': '▶ START SERVER',
+        'btn_stop': '■ STOP SERVER',
+        'btn_vjoy': 'Setup vJoy',
+        'btn_about': 'About',
+        'sec_control': 'CONTROL CENTER',
+        'sec_logs': 'SYSTEM LOGS',
+        'sec_misc': 'MISCELLANEOUS',
+        'sec_telemetry': 'GAME TELEMETRY',
+        'sec_axis': 'AXIS INPUTS',
+        'sec_buttons': 'BUTTON STATES',
+        'vjoy_title': 'vJoy Virtual Joystick',
+        'vjoy_text': 'This application requires vJoy (virtual joystick) to be installed and properly configured.\n\nDo you want to run the automatic setup now?\n(Requires administrator privileges)',
+        'vjoy_inst_err': 'Error running vJoy installer: ',
+        'vjoy_inst_err_title': 'Error',
+        'vjoy_prob': 'There was a problem installing vJoy. Check logs.',
+        'vjoy_prob_title': 'vJoy',
+        'speed': 'SPEED km/h',
+        'gear': 'GEAR',
+        'rpm': 'RPM',
+        'accel': 'ACCELERATE',
+        'steer': 'STEERING',
+        'speed': 'SPEED km/h',
+        'gear': 'GEAR',
+        'rpm': 'RPM',
+        'accel': 'ACCELERATE',
+        'steer': 'STEERING',
+        'update_avail': 'Update available: ',
+        'update_prompt': 'Do you want to download and install it now?',
+        'update_err': 'Error checking updates: ',
+        'cb_startup': 'Startup',
+        'cb_autostart_srv': 'Auto-start',
+        'cb_autoupdate': 'Auto-update',
+        'pill_online': '  ●  ONLINE  ',
+        'pill_offline': '  ●  OFFLINE  ',
+        'pill_search': '● Searching for game...',
+        'pill_conn': '● Connected ({0})',
+        'btn_start_short': '▶  START',
+        'btn_stop_short': '■  STOP',
+        'btn_restart_short': '↻  RESTART',
+        'btn_update_short': '⬇  UPDATE',
+        'btn_disconnect': 'DISCONNECT',
+        'btn_checking': 'CHECKING...',
+        'btn_downloading': 'DOWNLOADING...',
+        'gas': 'GAS',
+        'brake': 'BRAKE',
+        'upd_title': 'Update',
+        'upd_err1': 'Could not check for updates.\n\n{0}',
+        'upd_err2': 'Could not complete the update.\n\n{0}',
+        'upd_no': 'You have the latest version.',
+        'msg_vjoy_installed': 'vJoy is already installed on the system.',
+        'msg_vjoy_install_prompt': 'vJoy is not installed.\nDo you want to download and install vJoy automatically? (Requires admin permissions)',
+        'msg_vjoy_success': 'vJoy was installed successfully.',
+        'msg_upd_latest': 'You already have the latest version ({0}).',
+        'msg_upd_bad_url': 'The server did not return a valid download URL.',
+        'msg_upd_dl_done': 'The update has been downloaded. The installer will start now.',
+        'msg_upd_inst_err': 'Could not start the installer.\n\n{0}',
+        'msg_about_title': 'About Mobile Wheel Server',
+        'msg_about_desc': 'Use your mobile device as a PC racing wheel.',
+        'msg_vjoy_title': 'Install vJoy',
+        'msg_upd_title': 'Update',
+        'msg_upd_avail_title': 'Update available',
+        'lang_label': 'Language:',
+        'upd_btn': 'Check updates'
+    },
+    'es': {
+        'status_stop': 'ESTADO: DETENIDO',
+        'status_run': 'ESTADO: EN EJECUCIÓN',
+        'btn_start': '▶ INICIAR SERVIDOR',
+        'btn_stop': '■ DETENER SERVIDOR',
+        'btn_vjoy': 'Instalar vJoy',
+        'btn_about': 'Acerca de',
+        'sec_control': 'CENTRO DE CONTROL',
+        'sec_logs': 'REGISTROS DEL SISTEMA',
+        'sec_misc': 'MISCELÁNEA',
+        'sec_telemetry': 'TELEMETRÍA',
+        'sec_axis': 'EJES DE ENTRADA',
+        'sec_buttons': 'ESTADO DE BOTONES',
+        'vjoy_title': 'Joystick Virtual vJoy',
+        'vjoy_text': 'Esta aplicación requiere que vJoy (joystick virtual) esté instalado y configurado correctamente.\n\n¿Quieres ejecutar la configuración automática ahora?\n(Requiere privilegios de administrador)',
+        'vjoy_inst_err': 'Error ejecutando instalador vJoy: ',
+        'vjoy_inst_err_title': 'Error',
+        'vjoy_prob': 'Hubo un problema instalando vJoy. Revisa los logs.',      
+        'vjoy_prob_title': 'vJoy',
+        'speed': 'VELOCIDAD km/h',
+        'gear': 'MARCHA',
+        'rpm': 'RPM',
+        'accel': 'ACELERADOR',
+        'steer': 'DIRECCIÓN',
+        'speed': 'VELOCIDAD km/h',
+        'gear': 'MARCHA',
+        'rpm': 'RPM',
+        'accel': 'ACELERADOR',
+        'steer': 'DIRECCIÓN',
+        'update_avail': 'Actualización disponible: ',
+        'update_prompt': '¿Quieres descargarla e instalarla ahora?',
+        'update_err': 'Error buscando actualizaciones: ',
+        'cb_startup': 'Inicio auto',
+        'cb_autostart_srv': 'Auto-arranque',
+        'cb_autoupdate': 'Auto-actualizar',
+        'pill_online': '  ●  EN LÍNEA  ',
+        'pill_offline': '  ●  DESCONECTADO  ',
+        'pill_search': '● Buscando juego...',
+        'pill_conn': '● Conectado ({0})',
+        'btn_start_short': '▶  INICIAR',
+        'btn_stop_short': '■  DETENER',
+        'btn_restart_short': '↻  REINICIAR',
+        'btn_update_short': '⬇  ACTUALIZAR',
+        'btn_disconnect': 'DESCONECTAR',
+        'btn_checking': 'BUSCANDO...',
+        'btn_downloading': 'DESCARGANDO...',
+        'gas': 'ACELERADOR',
+        'brake': 'FRENO',
+        'upd_title': 'Actualización',
+        'upd_err1': 'No se pudo comprobar actualizaciones.\n\n{0}',
+        'upd_err2': 'No se pudo completar la actualización.\n\n{0}',
+        'upd_no': 'Tienes la última versión.',
+        'msg_vjoy_installed': 'vJoy ya está instalado en el sistema.',
+        'msg_vjoy_install_prompt': 'vJoy no está instalado.\n¿Deseas descargar e instalar vJoy automáticamente? (Requiere permisos de administrador)',
+        'msg_vjoy_success': 'vJoy se instaló correctamente.',
+        'msg_upd_latest': 'Ya tienes la última versión ({0}).',
+        'msg_upd_bad_url': 'El servidor no devolvió una URL de descarga válida.',
+        'msg_upd_dl_done': 'La actualización se ha descargado. El instalador se ejecutará ahora.',
+        'msg_upd_inst_err': 'No se pudo iniciar el instalador.\n\n{0}',
+        'msg_about_title': 'Acerca de Mobile Wheel Server',
+        'msg_about_desc': 'Utiliza tu dispositivo móvil como volante de carreras en PC.',
+        'msg_vjoy_title': 'Instalar vJoy',
+        'msg_upd_title': 'Actualización',
+        'msg_upd_avail_title': 'Actualización disponible',
+        'lang_label': 'Idioma:',
+        'upd_btn': 'Buscar actualizaciones'
+    },
+    'ca': {
+        'status_stop': 'ESTAT: ATURAT',
+        'status_run': 'ESTAT: EN EXECUCIÓ',
+        'btn_start': '▶ INICIAR SERVIDOR',
+        'btn_stop': '■ ATURAR SERVIDOR',
+        'btn_vjoy': 'Instal·lar vJoy',
+        'btn_about': 'Quant a',
+        'sec_control': 'CENTRE DE CONTROL',
+        'sec_logs': 'REGISTRES DEL SISTEMA',
+        'sec_misc': 'MISCEL·LÀNIA',
+        'sec_telemetry': 'TELEMETRIA',
+        'sec_axis': 'EIXOS D\'ENTRADA',
+        'sec_buttons': 'ESTAT DE BOTONS',
+        'vjoy_title': 'Joystick Virtual vJoy',
+        'vjoy_text': 'Aquesta aplicació requereix que vJoy (joystick virtual) estigui instal·lat i configurat correctament.\n\nVols executar la configuració automàtica ara?\n(Requereix privilegis d\'administrador)',
+        'vjoy_inst_err': 'Error executant l\'instal·lador vJoy: ',
+        'vjoy_inst_err_title': 'Error',
+        'vjoy_prob': 'Hi ha hagut un problema instal·lant vJoy. Revisa els logs.',
+        'vjoy_prob_title': 'vJoy',
+        'speed': 'VELOCITAT km/h',
+        'gear': 'MARXA',
+        'rpm': 'RPM',
+        'accel': 'ACCELERADOR',
+        'steer': 'DIRECCIÓ',
+        'speed': 'VELOCITAT km/h',
+        'gear': 'MARXA',
+        'rpm': 'RPM',
+        'accel': 'ACCELERADOR',
+        'steer': 'DIRECCIÓ',
+        'update_avail': 'Actualització disponible: ',
+        'update_prompt': 'Vols descarregar-la i instal·lar-la ara?',
+        'update_err': 'Error cercant actualitzacions: ',
+        'cb_startup': 'Inici auto',
+        'cb_autostart_srv': 'Auto-arrencada',
+        'cb_autoupdate': 'Auto-actualitzar',
+        'pill_online': '  ●  EN LÍNIA  ',
+        'pill_offline': '  ●  DESCONNECTAT  ',
+        'pill_search': '● Cercant joc...',
+        'pill_conn': '● Connectat ({0})',
+        'btn_start_short': '▶  INICIAR',
+        'btn_stop_short': '■  ATURAR',
+        'btn_restart_short': '↻  REINICIAR',
+        'btn_update_short': '⬇  ACTUALIZAR',
+        'btn_disconnect': 'DESCONNECTAR',
+        'btn_checking': 'CERCANT...',
+        'btn_downloading': 'DESCARREGANT...',
+        'gas': 'ACCELERADOR',
+        'brake': 'FRE',
+        'upd_title': 'Actualització',
+        'upd_err1': 'No s\'han pogut cercar actualitzacions.\n\n{0}',        
+        'upd_err2': 'No s\'ha pogut completar l\'actualització.\n\n{0}',   
+        'upd_no': 'Tens la darrera versió.',
+        'msg_vjoy_installed': 'vJoy ja està instal·lat en el sistema.',
+        'msg_vjoy_install_prompt': 'vJoy no està instal·lat.\nVols descarregar i instal·lar vJoy automàticament? (Requereix permisos d\'administrador)',
+        'msg_vjoy_success': 'vJoy s\'ha instal·lat correctament.',
+        'msg_upd_latest': 'Ja tens la darrera versió ({0}).',
+        'msg_upd_bad_url': 'El servidor no ha retornat una URL de descàrrega vàlida.',
+        'msg_upd_dl_done': 'L\'actualització s\'ha descarregat. L\'instal·lador s\'iniciarà ara.',
+        'msg_upd_inst_err': 'No s\'ha pogut iniciar l\'instal·lador.\n\n{0}',
+        'msg_about_title': 'Quant a Mobile Wheel Server',
+        'msg_about_desc': 'Utilitza el teu dispositiu mòbil com a volant de carreres a PC.',
+        'msg_vjoy_title': 'Instal·lar vJoy',
+        'msg_upd_title': 'Actualització',
+        'msg_upd_avail_title': 'Actualització disponible',
+        'lang_label': 'Idioma:',
+        'upd_btn': 'Cercar actualitzacions'
+    }
+}
+
+_LANG = "es"
+
+def set_language(lang):
+    global _LANG
+    _LANG = lang
+
+def tr(key):
+    return I18N.get(_LANG, I18N["en"]).get(key, key)
 
 # Signals class for thread-safe UI updates
 class WorkerSignals(QObject):
@@ -142,6 +355,8 @@ class ServerApp(QMainWindow):
 
         self.init_ui()
         self.apply_stylesheet()
+        self.update_ui_strings()
+        self.update_ui_strings()
 
         # Log timer
         self.log_timer = QTimer()
@@ -190,7 +405,61 @@ class ServerApp(QMainWindow):
         lbl.setStyleSheet("color: #FFFFFF;")
         return lbl
 
+    
+    def _make_stat_card_dyn(self, title, value_widget):
+        card = QFrame()
+        card.setObjectName("StatCard")
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setSpacing(4)
+        t = QLabel(title)
+        t.setFont(QFont("Segoe UI", 7, QFont.DemiBold))
+        t.setAlignment(Qt.AlignCenter)
+        t.setStyleSheet("color: #8E8E8E; letter-spacing: 1px;")
+        layout.addWidget(t)
+        layout.addWidget(value_widget)
+        return card, t
+
+    def axis_row_dyn(self, label_text, bar_widget, accent_color):
+        row = QHBoxLayout()
+        row.setSpacing(12)
+        lbl = QLabel(label_text)
+        lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
+        lbl.setStyleSheet(f"color: {accent_color}; min-width: 105px; max-width: 130px; letter-spacing: 1px;")
+        lbl.setWordWrap(True) # Fixed min-width for responsive languages
+        row.addWidget(lbl)
+        row.addWidget(bar_widget, 1)
+        return row, lbl
+
+    
+    def _make_stat_card_dyn(self, title, value_widget):
+        card = QFrame()
+        card.setObjectName("StatCard")
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setSpacing(4)
+        t = QLabel(title)
+        t.setFont(QFont("Segoe UI", 7, QFont.DemiBold))
+        t.setAlignment(Qt.AlignCenter)
+        t.setStyleSheet("color: #8E8E8E; letter-spacing: 1px;")
+        layout.addWidget(t)
+        layout.addWidget(value_widget)
+        return card, t
+
+    def axis_row_dyn(self, label_text, bar_widget, accent_color):
+        row = QHBoxLayout()
+        row.setSpacing(12)
+        lbl = QLabel(label_text)
+        lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
+        lbl.setStyleSheet(f"color: {accent_color}; min-width: 105px; max-width: 130px; letter-spacing: 1px;")
+        lbl.setWordWrap(True) # Fixed min-width for responsive languages
+        row.addWidget(lbl)
+        row.addWidget(bar_widget, 1)
+        return row, lbl
+
     def _make_stat_card(self, title, value_widget):
+        return self._make_stat_card_dyn(title, value_widget)[0]
+        return self._make_stat_card_dyn(title, value_widget)[0]
         """Mini card widget with a title and a value widget inside."""
         card = QFrame()
         card.setObjectName("StatCard")
@@ -259,7 +528,7 @@ class ServerApp(QMainWindow):
         self.status_pill.setAlignment(Qt.AlignCenter)
         self.status_pill.setStyleSheet(
             "color: #F97316; background-color: transparent;" # Orange
-            "border: 1px solid #F97316; border-radius: 6px;"
+            "border: 1px solid #F97316; border-radius: 12px;"
             "padding: 3px 12px; letter-spacing: 2px;"
         )
         self.status_indicator = self.status_pill  # compat
@@ -283,7 +552,31 @@ class ServerApp(QMainWindow):
         cb_row.addWidget(self.autostart_server_cb)
         cb_row.addWidget(self.auto_update_cb)
 
+        # Language Selector
+        lang_layout = QHBoxLayout()
+        self.lbl_lang = QLabel(tr("lang_label"))
+        self.lbl_lang.setStyleSheet("color: #FAFAFA;")
+        self.lang_cb = QComboBox()
+        self.lang_cb.addItems(["English", "Español", "Català"])
+        self.lang_list_view = QListView()
+        self.lang_cb.setView(self.lang_list_view)
+        self.lang_list_view = QListView()
+        self.lang_cb.setView(self.lang_list_view)
+        
+        curr_lang = self.settings.value("language", "en", type=str)
+        if curr_lang == "es":
+            self.lang_cb.setCurrentIndex(1)
+        elif curr_lang == "ca":
+            self.lang_cb.setCurrentIndex(2)
+        else:
+            self.lang_cb.setCurrentIndex(0)
+        self.lang_cb.currentIndexChanged.connect(self.on_language_changed)
+        lang_layout.addWidget(self.lbl_lang)
+        lang_layout.addWidget(self.lang_cb)
+        lang_layout.setAlignment(Qt.AlignRight)
+
         right_col.addWidget(self.status_pill, alignment=Qt.AlignRight)
+        right_col.addLayout(lang_layout)
         right_col.addLayout(cb_row)
         header_layout.addLayout(right_col)
         inner.addLayout(header_layout)
@@ -356,16 +649,19 @@ class ServerApp(QMainWindow):
 
         # ── TELEMETRY ─────────────────────────────────────────────────────
         if TELEMETRY_AVAILABLE:
-            inner.addWidget(self._section_label("GAME TELEMETRY"))
+            self.lbl_sec_tele = self._section_label(tr("sec_telemetry"))
+            inner.addWidget(self.lbl_sec_tele)
 
             tele_frame = QFrame()
+            tele_frame.setGraphicsEffect(self._make_shadow(25, QColor(0,0,0,120), (0,4)))
+            tele_frame.setGraphicsEffect(self._make_shadow(25, QColor(0,0,0,120), (0,4)))
             tele_frame.setObjectName("TelemetryFrame")
             tele_grid = QGridLayout(tele_frame)
             tele_grid.setContentsMargins(16, 10, 16, 10)
             tele_grid.setSpacing(7)
 
             # Row 0 — status + disconnect
-            self.telemetry_status_lbl = QLabel("●  Searching for game...")
+            self.telemetry_status_lbl = QLabel(self.tr("pill_search"))
             self.telemetry_status_lbl.setFont(QFont("Segoe UI", 10, QFont.Bold))
             self.telemetry_status_lbl.setStyleSheet("color: #F59E0B;") # Amber-500
             self.telemetry_disconnect_btn = QPushButton("DISCONNECT")
@@ -379,13 +675,13 @@ class ServerApp(QMainWindow):
             tele_grid.addWidget(self.telemetry_disconnect_btn, 0, 3, 1, 1, Qt.AlignRight)
 
             # Row 1 — stat cards: Speed | Gear | RPM
-            self.telemetry_speed_val = self._value_label("---", 18)
-            self.telemetry_gear_val  = self._value_label("-",   18)
-            self.telemetry_rpm_val   = self._value_label("0",   16)
+            self.telemetry_speed_val = self._value_label("---", 24)
+            self.telemetry_gear_val  = self._value_label("-",   24)
+            self.telemetry_rpm_val   = self._value_label("0",   20)
             self.telemetry_rpm_lbl   = self.telemetry_rpm_val   # compat
-            speed_card = self._make_stat_card("SPEED  km/h", self.telemetry_speed_val)
-            gear_card  = self._make_stat_card("GEAR",        self.telemetry_gear_val)
-            rpm_card   = self._make_stat_card("RPM",         self.telemetry_rpm_val)
+            speed_card, self.lbl_speed_title = self._make_stat_card_dyn("SPEED km/h", self.telemetry_speed_val)
+            gear_card, self.lbl_gear_title = self._make_stat_card_dyn("GEAR", self.telemetry_gear_val)
+            rpm_card, self.lbl_rpm_title = self._make_stat_card_dyn("RPM", self.telemetry_rpm_val)
             tele_grid.addWidget(speed_card, 1, 0, 1, 2)
             tele_grid.addWidget(gear_card,  1, 2, 1, 1)
             tele_grid.addWidget(rpm_card,   1, 3, 1, 1)
@@ -395,32 +691,32 @@ class ServerApp(QMainWindow):
             tele_grid.addWidget(self.telemetry_rpm_bar, 2, 0, 1, 4)
 
             # Row 3 — Gas bar
-            gas_lbl = QLabel("GAS")
-            gas_lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
-            gas_lbl.setStyleSheet("color: #FFFFFF; letter-spacing: 2px;") # White
-            gas_lbl.setFixedWidth(40)
+            self.lbl_gas = QLabel("GAS")
+            self.lbl_gas.setFont(QFont("Segoe UI", 8, QFont.Bold))
+            self.lbl_gas.setStyleSheet("color: #FFFFFF; letter-spacing: 2px;") # White
+            self.lbl_gas.setMinimumWidth(80)
             self.telemetry_gas_bar = ModernGaugeBar(100, "#FAFAFA") # Neutral-50
             self.telemetry_gas_lbl = QLabel("0%")
             self.telemetry_gas_lbl.setFont(QFont("Consolas", 10, QFont.Bold))
             self.telemetry_gas_lbl.setStyleSheet("color: #FFFFFF;")
             self.telemetry_gas_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.telemetry_gas_lbl.setFixedWidth(38)
-            tele_grid.addWidget(gas_lbl,                  3, 0)
+            tele_grid.addWidget(self.lbl_gas,                  3, 0)
             tele_grid.addWidget(self.telemetry_gas_bar,   3, 1, 1, 2)
             tele_grid.addWidget(self.telemetry_gas_lbl,   3, 3)
 
             # Row 4 — Brake bar
-            brk_lbl = QLabel("BRAKE")
-            brk_lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
-            brk_lbl.setStyleSheet("color: #F97316; letter-spacing: 2px;") # Orange-500
-            brk_lbl.setFixedWidth(40)
+            self.lbl_brake = QLabel("BRAKE")
+            self.lbl_brake.setFont(QFont("Segoe UI", 8, QFont.Bold))
+            self.lbl_brake.setStyleSheet("color: #F97316; letter-spacing: 2px;") # Orange-500
+            self.lbl_brake.setMinimumWidth(80)
             self.telemetry_brake_bar = ModernGaugeBar(100, "#F97316") # Orange-500
             self.telemetry_brake_lbl = QLabel("0%")
             self.telemetry_brake_lbl.setFont(QFont("Consolas", 10, QFont.Bold))
             self.telemetry_brake_lbl.setStyleSheet("color: #F97316;")
             self.telemetry_brake_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.telemetry_brake_lbl.setFixedWidth(38)
-            tele_grid.addWidget(brk_lbl,                  4, 0)
+            tele_grid.addWidget(self.lbl_brake,                  4, 0)
             tele_grid.addWidget(self.telemetry_brake_bar, 4, 1, 1, 2)
             tele_grid.addWidget(self.telemetry_brake_lbl, 4, 3)
 
@@ -431,36 +727,45 @@ class ServerApp(QMainWindow):
             inner.addWidget(tele_frame)
 
         # ── AXIS INPUTS ───────────────────────────────────────────────────
-        inner.addWidget(self._section_label("AXIS INPUTS"))
+        self.lbl_sec_axis = self._section_label(tr("sec_axis"))
+        inner.addWidget(self.lbl_sec_axis)
 
         axis_frame = QFrame()
+        axis_frame.setGraphicsEffect(self._make_shadow(25, QColor(0,0,0,120), (0,4)))
+        axis_frame.setGraphicsEffect(self._make_shadow(25, QColor(0,0,0,120), (0,4)))
         axis_frame.setObjectName("AxisFrame")
         axis_outer = QVBoxLayout(axis_frame)
         axis_outer.setContentsMargins(16, 10, 16, 10)
         axis_outer.setSpacing(9)
 
-        def axis_row(label_text, bar_widget, accent_color):
-            row = QHBoxLayout()
-            row.setSpacing(12)
-            lbl = QLabel(label_text)
-            lbl.setFont(QFont("Segoe UI", 8, QFont.Bold))
-            lbl.setStyleSheet(f"color: {accent_color}; min-width: 82px; letter-spacing: 1px;")
-            row.addWidget(lbl)
-            row.addWidget(bar_widget, 1)
-            return row
+# Removing axis_row
+
+
+
+
+
+
+
+
 
         self.accel_bar = ModernGaugeBar(100,   "#FAFAFA") # White/Neutral-50
         self.brake_bar = ModernGaugeBar(100,   "#F97316") # Orange-500
         self.steer_bar = ModernGaugeBar(32767, "#FB923C") # Orange-400
-        axis_outer.addLayout(axis_row("ACCELERATE", self.accel_bar, "#FAFAFA"))
-        axis_outer.addLayout(axis_row("BRAKE",      self.brake_bar, "#F97316"))
-        axis_outer.addLayout(axis_row("STEERING",   self.steer_bar, "#FB923C"))
+        row_a, self.lbl_axis_accel = self.axis_row_dyn("ACCELERATE", self.accel_bar, "#FAFAFA")
+        axis_outer.addLayout(row_a)
+        row_b, self.lbl_axis_brake = self.axis_row_dyn("BRAKE", self.brake_bar, "#F97316")
+        axis_outer.addLayout(row_b)
+        row_s, self.lbl_axis_steer = self.axis_row_dyn("STEERING", self.steer_bar, "#FB923C")
+        axis_outer.addLayout(row_s)
         inner.addWidget(axis_frame)
 
         # ── BUTTON STATES ─────────────────────────────────────────────────
-        inner.addWidget(self._section_label("BUTTON STATES"))
+        self.lbl_sec_btns = self._section_label(tr("sec_buttons"))
+        inner.addWidget(self.lbl_sec_btns)
 
         btn_frame = QFrame()
+        btn_frame.setGraphicsEffect(self._make_shadow(25, QColor(0,0,0,120), (0,4)))
+        btn_frame.setGraphicsEffect(self._make_shadow(25, QColor(0,0,0,120), (0,4)))
         btn_frame.setObjectName("BtnFrame")
         btn_outer = QGridLayout(btn_frame)
         btn_outer.setContentsMargins(16, 8, 16, 8)
@@ -478,7 +783,8 @@ class ServerApp(QMainWindow):
         inner.addWidget(btn_frame)
 
         # ── LOG AREA — takes all remaining vertical space ─────────────────
-        inner.addWidget(self._section_label("SERVER LOGS"))
+        self.lbl_sec_logs = self._section_label(tr("sec_logs"))
+        inner.addWidget(self.lbl_sec_logs)
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
         self.log_area.setFont(QFont("Consolas", 9))
@@ -521,9 +827,9 @@ class ServerApp(QMainWindow):
 
         /* ── Buttons ─────────────────────────────────────────────── */
         QPushButton {
-            background-color: #171717;
-            border: 1px solid #404040;
-            color: #A3A3A3;
+            background-color: #1A1A1A;
+            border: 1px solid #333333;
+            color: #D4D4D4;
             padding: 8px 16px;
             border-radius: 6px;
             font-weight: bold;
@@ -531,14 +837,16 @@ class ServerApp(QMainWindow):
             letter-spacing: 2px;
         }
         QPushButton:hover {
-            background-color: #262626;
+            background-color: #2A2A2A;
             border: 1px solid #F97316;
             color: #FAFAFA;
         }
         QPushButton:pressed {
-            background-color: #F97316;
+            background-color: #EA580C;
             color: #0A0A0A;
-            border: 1px solid #F97316;
+            border: 1px solid #EA580C;
+            padding-top: 9px;
+            padding-left: 17px;
         }
         QPushButton:disabled {
             border: 1px solid #262626;
@@ -596,7 +904,7 @@ class ServerApp(QMainWindow):
             border: 1px solid #525252;
             background-color: #171717;
         }
-        QCheckBox::indicator:hover  { border: 1px solid #F97316; }
+        QCheckBox::indicator:hover  { border: 1px solid #F97316; background-color: #262626; }
         QCheckBox::indicator:checked {
             background-color: #F97316;
             border: 1px solid #F97316;
@@ -605,14 +913,156 @@ class ServerApp(QMainWindow):
 
         /* ── Log area ────────────────────────────────────────────── */
         QTextEdit {
-            background-color: #171717;
-            border: 1px solid #262626;
+            background-color: #0F0F0F;
+            border: 1px solid #1E1E1E;
             border-radius: 6px;
-            padding: 10px;
+            padding: 12px;
             color: #D4D4D4;
             font-size: 11px;
             selection-background-color: #F97316;
             selection-color: #0A0A0A;
+        }
+
+
+        /* ── ComboBox ────────────────────────────────────────────── */
+        QComboBox {
+            background-color: #171717;
+            color: #FAFAFA;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 4px 10px;
+            min-height: 20px;
+            font-weight: 500;
+        }
+        QComboBox:hover {
+            border: 1px solid #F97316;
+            background-color: #262626;
+        }
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 24px;
+            border-left: 1px solid #404040;
+        }
+        QComboBox::down-arrow {
+            width: 10px;
+            height: 10px;
+            /* Simple CSS triangle approximation won't work easily here, so we just use border tricks if possible, 
+               but PyQt standard arrows are fine if the background is defined. */
+        }
+        QComboBox QAbstractItemView {
+            background-color: #1A1A1A;
+            color: #FAFAFA;
+            border: 1px solid #F97316;
+            selection-background-color: #F97316;
+            selection-color: #0A0A0A;
+            outline: none;
+            padding: 4px;
+        }
+        QComboBox QAbstractItemView::item {
+            min-height: 28px;
+            padding-left: 5px;
+            border-radius: 4px;
+        }
+        QComboBox QAbstractItemView::item:hover {
+            background-color: #333333;
+        }
+
+
+        /* ── LineEdit / Generic inputs ────────────────────────────── */
+        QLineEdit {
+            background-color: #171717;
+            color: #FAFAFA;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        QLineEdit:focus {
+            border: 1px solid #F97316;
+        }
+
+
+        /* ── ComboBox ────────────────────────────────────────────── */
+        QComboBox {
+            background-color: #171717;
+            color: #FAFAFA;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 4px 10px;
+            min-height: 20px;
+            font-weight: 500;
+        }
+        QComboBox:hover {
+            border: 1px solid #F97316;
+            background-color: #262626;
+        }
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 24px;
+            border-left: 1px solid #404040;
+        }
+        QComboBox::down-arrow {
+            width: 10px;
+            height: 10px;
+            /* Simple CSS triangle approximation won't work easily here, so we just use border tricks if possible, 
+               but PyQt standard arrows are fine if the background is defined. */
+        }
+        QComboBox QAbstractItemView {
+            background-color: #1A1A1A;
+            color: #FAFAFA;
+            border: 1px solid #F97316;
+            selection-background-color: #F97316;
+            selection-color: #0A0A0A;
+            outline: none;
+            padding: 4px;
+        }
+        QComboBox QAbstractItemView::item {
+            min-height: 28px;
+            padding-left: 5px;
+            border-radius: 4px;
+        }
+        QComboBox QAbstractItemView::item:hover {
+            background-color: #333333;
+        }
+
+
+        /* ── LineEdit / Generic inputs ────────────────────────────── */
+        QLineEdit {
+            background-color: #171717;
+            color: #FAFAFA;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        QLineEdit:focus {
+            border: 1px solid #F97316;
+        }
+
+
+        /* ── MessageBox ──────────────────────────────────────────── */
+        QMessageBox {
+            background-color: #0A0A0A;
+        }
+        QMessageBox QLabel {
+            color: #FAFAFA;
+            font-size: 14px;
+        }
+        QMessageBox QPushButton {
+            min-width: 60px;
+        }
+
+
+        /* ── MessageBox ──────────────────────────────────────────── */
+        QMessageBox {
+            background-color: #0A0A0A;
+        }
+        QMessageBox QLabel {
+            color: #FAFAFA;
+            font-size: 14px;
+        }
+        QMessageBox QPushButton {
+            min-width: 60px;
         }
 
         /* ── Scrollbars ──────────────────────────────────────────── */
@@ -797,7 +1247,7 @@ class ServerApp(QMainWindow):
 
     def show_about_dialog(self):
         msg = QMessageBox(self)
-        msg.setWindowTitle("About Mobile Wheel Server")
+        msg.setWindowTitle(tr("msg_about_title"))
         msg.setText(f"<h3>Mobile Wheel Server</h3><p>Versión {APP_VERSION}</p>"
                     "<p>Permite usar tu dispositivo móvil como un volante para juegos en PC.</p>"
                     "<p>© 2026 MobileWheel</p>"
@@ -872,7 +1322,7 @@ class ServerApp(QMainWindow):
                 "color: #FAFAFA;" # White
                 "background-color: transparent;"
                 "border: 1px solid #FAFAFA;"
-                "border-radius: 6px;"
+                "border-radius: 12px;"
                 "padding: 4px 14px;"
                 "letter-spacing: 2px;"
                 "font-weight: bold;"
@@ -885,13 +1335,77 @@ class ServerApp(QMainWindow):
                 "color: #F97316;" # Orange
                 "background-color: transparent;"
                 "border: 1px solid #F97316;"
-                "border-radius: 6px;"
+                "border-radius: 12px;"
                 "padding: 4px 14px;"
                 "letter-spacing: 2px;"
                 "font-weight: bold;"
                 "font-size: 9px;"
             )
             self.status_pill.setGraphicsEffect(None)
+
+    def on_language_changed(self, index):
+        langs = ["en", "es", "ca"]
+        lang = langs[index]
+        set_language(lang)
+        self.settings.setValue("language", lang)
+        self.update_ui_strings()
+
+    def update_ui_strings(self):
+        self.setWindowTitle(tr("msg_about_title"))
+        self.setWindowTitle(tr("msg_about_title"))
+        self.lbl_lang.setText(tr("lang_label"))
+        # self.status_pill is handled when status changes, but let's do a soft update
+        if self.server_running.is_set():
+            self.status_pill.setText(tr("pill_online"))
+            self.start_btn.setText(tr("btn_stop_short"))
+        else:
+            self.status_pill.setText(tr("pill_offline"))
+            self.start_btn.setText(tr("btn_start_short"))
+        
+        self.vjoy_btn.setText(tr("btn_vjoy"))
+        self.about_btn.setText(tr("btn_about"))
+        
+        # Sections
+        if hasattr(self, 'lbl_sec_control'): self.lbl_sec_control.setText(tr("sec_control"))
+        if hasattr(self, 'lbl_sec_logs'): self.lbl_sec_logs.setText(tr("sec_logs"))
+        if hasattr(self, 'lbl_sec_misc'): self.lbl_sec_misc.setText(tr("sec_misc"))
+        if hasattr(self, 'lbl_sec_tele'): self.lbl_sec_tele.setText(tr("sec_telemetry"))
+        if hasattr(self, 'lbl_sec_axis'): self.lbl_sec_axis.setText(tr("sec_axis"))
+        if hasattr(self, 'lbl_sec_btns'): self.lbl_sec_btns.setText(tr("sec_buttons"))
+        
+        # Checkboxes
+        if hasattr(self, "autostart_app_cb"): self.autostart_app_cb.setText(tr("cb_startup"))
+        if hasattr(self, "autostart_server_cb"): self.autostart_server_cb.setText(tr("cb_autostart_srv"))
+        if hasattr(self, "auto_update_cb"): self.auto_update_cb.setText(tr("cb_autoupdate"))
+        
+        # Mini headers
+
+        if hasattr(self, 'lbl_speed_title'): self.lbl_speed_title.setText(tr("speed") + " km/h" if "km/h" not in tr("speed") else tr("speed"))
+        if hasattr(self, 'lbl_gear_title'): self.lbl_gear_title.setText(tr("gear"))
+        if hasattr(self, 'lbl_rpm_title'): self.lbl_rpm_title.setText(tr("rpm"))
+        if hasattr(self, 'lbl_axis_accel'): self.lbl_axis_accel.setText(tr("accel"))
+        if hasattr(self, 'lbl_axis_brake'): self.lbl_axis_brake.setText(tr("brake"))
+        if hasattr(self, 'lbl_axis_steer'): self.lbl_axis_steer.setText(tr("steer"))
+        if hasattr(self, 'telemetry_status_lbl') and self.telemetry_status_lbl.text().startswith("●"): self.telemetry_status_lbl.setText(tr("pill_search"))
+        if hasattr(self, 'telemetry_status_lbl') and self.telemetry_status_lbl.text().startswith("●"): self.telemetry_status_lbl.setText(tr("pill_search"))
+
+        if hasattr(self, 'lbl_speed_title'): self.lbl_speed_title.setText(tr("speed") + " km/h" if "km/h" not in tr("speed") else tr("speed"))
+        if hasattr(self, 'lbl_gear_title'): self.lbl_gear_title.setText(tr("gear"))
+        if hasattr(self, 'lbl_rpm_title'): self.lbl_rpm_title.setText(tr("rpm"))
+        if hasattr(self, 'lbl_axis_accel'): self.lbl_axis_accel.setText(tr("accel"))
+        if hasattr(self, 'lbl_axis_brake'): self.lbl_axis_brake.setText(tr("brake"))
+        if hasattr(self, 'lbl_axis_steer'): self.lbl_axis_steer.setText(tr("steer"))
+        if hasattr(self, 'telemetry_status_lbl') and self.telemetry_status_lbl.text().startswith("●"): self.telemetry_status_lbl.setText(tr("pill_search"))
+        if hasattr(self, 'telemetry_status_lbl') and self.telemetry_status_lbl.text().startswith("●"): self.telemetry_status_lbl.setText(tr("pill_search"))
+        if hasattr(self, 'lbl_gas'): self.lbl_gas.setText(tr("gas"))
+
+
+        
+        # Updates btn
+        if hasattr(self, 'stop_btn'): self.stop_btn.setText(tr("btn_stop_short"))
+        if hasattr(self, 'restart_btn'): self.restart_btn.setText(tr("btn_restart_short"))
+        if hasattr(self, 'update_btn'): self.update_btn.setText(tr("btn_update_short"))
+        if hasattr(self, 'telemetry_disconnect_btn'): self.telemetry_disconnect_btn.setText(tr("btn_disconnect"))
 
     def start_server(self):
         if not self.server_running.is_set():
@@ -904,7 +1418,7 @@ class ServerApp(QMainWindow):
             self.stop_btn.setEnabled(True)
             self.restart_btn.setEnabled(True)
             self._set_status_pill(True)
-            self.status_indicator.setToolTip("Server Running")
+            self.status_indicator.setToolTip(tr("status_run"))
 
     def stop_server(self):
         if self.server_running.is_set():
@@ -917,7 +1431,7 @@ class ServerApp(QMainWindow):
             self.stop_btn.setEnabled(False)
             self.restart_btn.setEnabled(False)
             self._set_status_pill(False)
-            self.status_indicator.setToolTip("Server Stopped")
+            self.status_indicator.setToolTip(tr("status_stop"))
 
     def restart_server(self):
         if self.server_running.is_set():
@@ -965,7 +1479,7 @@ class ServerApp(QMainWindow):
     # --- Game Telemetry Methods ---
     def start_telemetry_auto_detect(self):
         self.telemetry_auto_detect_active = True
-        self.telemetry_status_lbl.setText("● Searching for game...")
+        self.telemetry_status_lbl.setText(tr("pill_search"))
         self.telemetry_status_lbl.setStyleSheet("color: #FFD60A; font-weight: bold;")
         self.try_telemetry_auto_connect()
 
@@ -983,7 +1497,7 @@ class ServerApp(QMainWindow):
                     self.telemetry_auto_detect_active = False
                     self.telemetry_disconnect_btn.setEnabled(True)
                     game_name = self.telemetry_reader.current_game or "Game"
-                    self.telemetry_status_lbl.setText(f"● Connected ({game_name})")
+                    self.telemetry_status_lbl.setText(tr("pill_conn").format(game_name))
                     self.telemetry_status_lbl.setStyleSheet("color: #00FF00; font-weight: bold;")
                     logging.info(f"Auto-connected to {game_name} telemetry")
                     return

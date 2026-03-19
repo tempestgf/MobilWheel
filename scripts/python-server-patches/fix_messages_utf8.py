@@ -1,0 +1,90 @@
+# -*- coding: utf-8 -*-
+import io
+
+with io.open('ServerApp.py', 'r', encoding='utf-8') as f:
+    text = f.read()
+
+en_extras = {
+    "msg_vjoy_installed": "vJoy is already installed on the system.",
+    "msg_vjoy_install_prompt": "vJoy is not installed.\\nDo you want to download and install vJoy automatically? (Requires admin permissions)",
+    "msg_vjoy_success": "vJoy was installed successfully.",
+    "msg_upd_latest": "You already have the latest version ({0}).",
+    "msg_upd_bad_url": "The server did not return a valid download URL.",
+    "msg_upd_dl_done": "The update has been downloaded. The installer will start now.",
+    "msg_upd_inst_err": "Could not start the installer.\\n\\n{0}",
+    "msg_about_title": "About Mobile Wheel Server",
+    "msg_about_desc": "Use your mobile device as a PC racing wheel.",
+    "msg_vjoy_title": "Install vJoy",
+    "msg_upd_title": "Update",
+    "msg_upd_avail_title": "Update available"
+}
+
+es_extras = {
+    "msg_vjoy_installed": "vJoy ya est� instalado en el sistema.",
+    "msg_vjoy_install_prompt": "vJoy no est� instalado.\\n�Deseas descargar e instalar vJoy autom�ticamente? (Requiere permisos de administrador)",
+    "msg_vjoy_success": "vJoy se instal� correctamente.",
+    "msg_upd_latest": "Ya tienes la �ltima versi�n ({0}).",
+    "msg_upd_bad_url": "El servidor no devolvi� una URL de descarga v�lida.",
+    "msg_upd_dl_done": "La actualizaci�n se ha descargado. El instalador se ejecutar� ahora.",
+    "msg_upd_inst_err": "No se pudo iniciar el instalador.\\n\\n{0}",
+    "msg_about_title": "Acerca de Mobile Wheel Server",
+    "msg_about_desc": "Utiliza tu dispositivo m�vil como volante de carreras en PC.",
+    "msg_vjoy_title": "Instalar vJoy",
+    "msg_upd_title": "Actualizaci�n",
+    "msg_upd_avail_title": "Actualizaci�n disponible"
+}
+
+ca_extras = {
+    "msg_vjoy_installed": "vJoy ja est� instal�lat en el sistema.",
+    "msg_vjoy_install_prompt": "vJoy no est� instal�lat.\\nVols descarregar i instal�lar vJoy autom�ticament? (Requereix permisos d'administrador)",
+    "msg_vjoy_success": "vJoy s'ha instal�lat correctament.",
+    "msg_upd_latest": "Ja tens la darrera versi� ({0}).",
+    "msg_upd_bad_url": "El servidor no ha retornat una URL de desc�rrega v�lida.",
+    "msg_upd_dl_done": "L'actualitzaci� s'ha descarregat. L'instal�lador s'iniciar� ara.",
+    "msg_upd_inst_err": "No s'ha pogut iniciar l'instal�lador.\\n\\n{0}",
+    "msg_about_title": "Quant a Mobile Wheel Server",
+    "msg_about_desc": "Utilitza el teu dispositiu m�bil com a volant de carreres a PC.",
+    "msg_vjoy_title": "Instal�lar vJoy",
+    "msg_upd_title": "Actualitzaci�",
+    "msg_upd_avail_title": "Actualitzaci� disponible"
+}
+
+def inject_dict(lang, extras):
+    global text
+    s = text.find(f"'{lang}': {{")
+    e = text.find("}", s)
+    extra_str = ""
+    for k, v in extras.items():
+        extra_str += f"        '{k}': \\"{v}\\",\n"
+    text = text[:e] + extra_str + text[e:]
+
+inject_dict('en', en_extras)
+inject_dict('es', es_extras)
+inject_dict('ca', ca_extras)
+
+reps = {
+    'QMessageBox.warning(self, "Actualizacion", f"No se pudo comprobar actualizaciones.\\n\\n{message}")': 'QMessageBox.warning(self, tr("msg_upd_title"), tr("upd_err1").format(message))',
+    'QMessageBox.information(self, "Actualizacion", f"Ya tienes la ultima version ({APP_VERSION}).")': 'QMessageBox.information(self, tr("msg_upd_title"), tr("msg_upd_latest").format(APP_VERSION))',
+    'QMessageBox.warning(self, "Actualizacion", "El servidor no devolvio una URL de descarga valida.")': 'QMessageBox.warning(self, tr("msg_upd_title"), tr("msg_upd_bad_url"))',
+    'QMessageBox.question(self, "Actualizacion disponible", msg, buttons)': 'QMessageBox.question(self, tr("msg_upd_avail_title"), msg, buttons)',
+    'QMessageBox.warning(self, "Actualizacion", f"No se pudo completar la actualizacion.\\n\\n{message}")': 'QMessageBox.warning(self, tr("msg_upd_title"), tr("upd_err2").format(message))',
+    'QMessageBox.information(\n            self,\n            "Actualizacion descargada",\n            "Se procedera a lanzar el instalador de la nueva version.",\n        )': 'QMessageBox.information(self, tr("msg_upd_title"), tr("msg_upd_dl_done"))',
+    'QMessageBox.warning(self, "Actualizacion", f"No se pudo iniciar el instalador.\\n\\n{exc}")': 'QMessageBox.warning(self, tr("msg_upd_title"), tr("msg_upd_inst_err").format(exc))',
+    'QMessageBox.information(self, "vJoy", "vJoy ya est� instalado en el sistema.")': 'QMessageBox.information(self, tr("vjoy_prob_title"), tr("msg_vjoy_installed"))',
+    '"vJoy no est� instalado.\\n�Deseas descargar e instalar vJoy autom�ticamente? (Requiere permisos de administrador)"': 'tr("msg_vjoy_install_prompt")',
+    'QMessageBox.question(self, \'Instalar vJoy\',': 'QMessageBox.question(self, tr("msg_vjoy_title"),',
+    'QMessageBox.information(self, "vJoy", "vJoy se instal� correctamente.")': 'QMessageBox.information(self, tr("vjoy_prob_title"), tr("msg_vjoy_success"))',
+    'QMessageBox.warning(self, "vJoy", "Hubo un problema instalando vJoy. Revisa los logs.")': 'QMessageBox.warning(self, tr("vjoy_prob_title"), tr("vjoy_prob"))',
+    'QMessageBox.critical(self, "Error", f"Error iniciando instalador de vJoy: {e}")': 'QMessageBox.critical(self, tr("vjoy_inst_err_title"), f"{tr(\'vjoy_inst_err\')} {e}")',
+    'msg.setWindowTitle("About Mobile Wheel Server")': 'msg.setWindowTitle(tr("msg_about_title"))',
+    '"<p>Permite usar tu dispositivo m�vil como un volante para juegos en PC.</p>"': 'f"<p>{tr(\'msg_about_desc\')}</p>"',
+    'logging.info("Buscando actualizaciones autom�ticas...")': 'logging.info("Checking for automatic updates...")'
+}
+
+for k, v in reps.items():
+    text = text.replace(k, v)
+
+with io.open('ServerApp.py', 'w', encoding='utf-8') as f:
+    f.write(text)
+
+print("Messages replaced perfectly.")

@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mobil Wheel</string>
     <string name="app_version">Version 1.1</string>
@@ -28,6 +29,17 @@
     <string name="about_url_discord">https://discord.gg/XyxkZkay</string>
     <string name="about_url_github">https://github.com/tempestgf/mobilwheel</string>
     <string name="about_url_web">https://mobilwheel.com</string>
+    
+    <string name="title_settings">SETTINGS</string>
+    <string name="label_steering_angle">STEERING ANGLE</string>
+    <string name="label_swipe_threshold">SWIPE THRESHOLD</string>
+    <string name="label_click_time_limit">CLICK TIME LIMIT</string>
+    <string name="label_accel_sens">ACCELERATOR SENSITIVITY</string>
+    <string name="label_brake_sens">BRAKE SENSITIVITY</string>
+    <string name="checkbox_mute_bg">MUTE BACKGROUND VIDEO</string>
+    <string name="checkbox_enable_telemetry">ENABLE TELEMETRY</string>
+    <string name="button_reset_defaults">RESET DEFAULTS</string>
+    <string name="heading_description">DESCRIPTION</string>
+    <string name="heading_credits">CREDITS</string>
+    <string name="heading_links">LINKS</string>
 </resources>
-
-

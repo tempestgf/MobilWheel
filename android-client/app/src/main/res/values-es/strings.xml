@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mobil Wheel</string>
+    <string name="app_version">Versión 1.1</string>
+    <string name="app_description">Esta aplicación te permite controlar un volante virtual usando varios métodos de entrada como WiFi, anclaje de red USB y entrada de IP manual.</string>
+    <string name="app_authors">Desarrollado por: Geneon</string>
+    <string name="back_button">Atrás</string>
+    <string name="main_menu_title">MOBIL WHEEL</string>
+    <string name="main_menu_subtitle">Interfaz de Controlador Virtual</string>
+    <string name="button_start_engine">START ENGINE</string>
+    <string name="button_dashboard">DASHBOARD</string>
+    <string name="button_settings">SETTINGS</string>
+    <string name="button_about">ACERCA DE</string>
+    <string name="button_left_top">Botón Superior Izquierdo</string>
+    <string name="button_left_bottom">Botón Inferior Izquierdo</string>
+    <string name="button_right_top">Botón Superior Derecho</string>
+    <string name="button_right_bottom">Botón Inferior Derecho</string>
+    <string-array name="orientation_options">
+        <item>Automático</item>
+        <item>Pantalla hacia arriba</item>
+        <item>Pantalla hacia tu cuerpo</item>
+    </string-array>
+    <string name="title_connected">CONECTADO</string>
+    <string name="title_offline">DESCONECTADO</string>
+    <string name="about_link_discord">Discord</string>
+    <string name="about_link_github">GitHub</string>
+    <string name="about_link_web">Web</string>
+    <string name="about_url_discord">https://discord.gg/XyxkZkay</string>
+    <string name="about_url_github">https://github.com/tempestgf/mobilwheel</string>
+    <string name="about_url_web">https://mobilwheel.com</string>
+
+    <string name="title_settings">AJUSTES</string>
+    <string name="label_steering_angle">ÁNGULO DE DIRECCIÓN</string>
+    <string name="label_swipe_threshold">UMBRAL DE DESLIZAMIENTO</string>
+    <string name="label_click_time_limit">LÍMITE TIEMPO CLIC</string>
+    <string name="label_accel_sens">SENSIBILIDAD ACELERADOR</string>
+    <string name="label_brake_sens">SENSIBILIDAD FRENO</string>
+    <string name="checkbox_mute_bg">SILENCIAR VIDEO DE FONDO</string>
+    <string name="checkbox_enable_telemetry">HABILITAR TELEMETRÍA</string>
+    <string name="button_reset_defaults">RESTAURAR VALORES DE FÁBRICA</string>
+    <string name="heading_description">DESCRIPCIÓN</string>
+    <string name="heading_credits">CRÉDITOS</string>
+    <string name="heading_links">ENLACES</string>
+</resources>

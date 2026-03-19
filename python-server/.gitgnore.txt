@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.venv/
-build
-dist
-ServerApp.spec

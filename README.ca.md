@@ -2,9 +2,9 @@
 
 [English](README.md) | [Español](README.es.md) | [Català](README.ca.md)
 
-An app that simulates your phone as a steering wheel for PC.
+Aplicació que simula el teu telèfon com un volant de carreres per a PC.
 
-## Downloads
+## Descàrregues
 
 - **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.1-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
 

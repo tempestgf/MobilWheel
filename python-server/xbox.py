@@ -121,9 +121,7 @@ def _acquire_vjd_windows(device_id):
         if status == VJD_STAT_FREE or status == VJD_STAT_OWN:
             if vjoy.AcquireVJD(device_id):
                 logging.info(f"Device {device_id} acquired successfully.")
-                set_axis(device_id, 0x30, 16384)
-                set_axis(device_id, 0x31, 0)
-                set_axis(device_id, 0x32, 0)
+                set_axis(device_id, 0x31, 16384)
                 acquired_devices.add(device_id)
                 return True
             else:
@@ -159,8 +157,8 @@ def _acquire_vjd_linux(device_id):
             ],
             ecodes.EV_ABS: [
                 (ecodes.ABS_X, AbsInfo(value=16384, min=0, max=32767, fuzz=0, flat=0, resolution=0)),      # Steering
-                (ecodes.ABS_Y, AbsInfo(value=0, min=0, max=32767, fuzz=0, flat=0, resolution=0)),      # Accelerate
-                (ecodes.ABS_Z, AbsInfo(value=0, min=0, max=32767, fuzz=0, flat=0, resolution=0)),      # Brake
+                (ecodes.ABS_Y, AbsInfo(value=16384, min=0, max=32767, fuzz=0, flat=0, resolution=0)),      # Accelerate
+                (ecodes.ABS_Z, AbsInfo(value=16384, min=0, max=32767, fuzz=0, flat=0, resolution=0)),      # Brake
             ],
         }
         
@@ -168,7 +166,7 @@ def _acquire_vjd_linux(device_id):
         uinput_devices[device_id] = {
             'device': device,
             'buttons': {},
-            'axes': {ecodes.ABS_X: 16384, ecodes.ABS_Y: 0, ecodes.ABS_Z: 0}
+            'axes': {ecodes.ABS_X: 16384, ecodes.ABS_Y: 16384, ecodes.ABS_Z: 16384}
         }
         logging.info(f"Linux uinput device {device_id} created successfully.")
         return True
@@ -331,29 +329,12 @@ def forward_game_telemetry(client_conn, stop_event, send_lock):
                 last_send = now
                 
                 # Formato: T:velocidad:marcha:rpm\n
-                # IMPORTANTE: Android espera formato original de AC (0=R, 1=N, 2=1ª...)
-                # pero data.gear ya está corregido (-1=R, 0=N, 1=1ª...)
-                # así que sumamos +1 para volver al formato original
+                # Enviamos la marcha tal cual la lee el juego (-1=R, 0=N, 1=1ª...)
                 speed = int(data.speed_kmh)
-                gear = data.gear + 1  # Volver al formato original
+                gear = data.gear
                 rpm = int(data.rpms)
-
-                try:
-                    import json, dataclasses
-                    if hasattr(data, "to_json_payload"):
-                        t_dict = data.to_json_payload()
-                    elif dataclasses.is_dataclass(data):
-                        t_dict = dataclasses.asdict(data)
-                    else:
-                        t_dict = {"speed": speed, "gear": gear, "rpm": rpm}
-                except:
-                    t_dict = {"speed": speed, "gear": gear, "rpm": rpm}
-
-                t_dict["speed"] = speed
-                t_dict["gear"] = gear
-                t_dict["rpm"] = rpm
-
-                msg = f"J:{json.dumps(t_dict)}\n"
+                
+                msg = f"T:{speed}:{gear}:{rpm}\n"
                 
                 try:
                     with send_lock:
@@ -462,7 +443,7 @@ def process_non_critical_message(device_id, message, update_ui_callback=None):
         
         elif command in ['B', 'C'] and value.isdigit():  # Accelerate or Brake
             int_value = int(value)
-            axis_value = map_value(int_value, 0, 100, 0, 32767)
+            axis_value = map_value(int_value, 0, 100, 16384, 32767)
             if command == 'B':  # Acelerar
                 set_axis(device_id, 0x31, axis_value)
                 if update_ui_callback:
