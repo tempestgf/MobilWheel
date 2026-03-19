@@ -101,8 +101,14 @@ class AppUpdater:
             
             # Script batch que espera a que cierre el actual, copia el nuevo encima y lo ejecuta
             bat_content = f"""@echo off
-timeout /t 2 /nobreak > nul
-copy /Y "{installer_path}" "{current_exe}"
+set "retry=0"
+:loop
+timeout /t 1 /nobreak > nul
+copy /Y "{installer_path}" "{current_exe}" > nul 2>&1
+if %ERRORLEVEL% EQU 0 goto done
+set /a retry+=1
+if %retry% LSS 10 goto loop
+:done
 start "" "{current_exe}"
 del "%~f0"
 """

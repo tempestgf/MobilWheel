@@ -1218,6 +1218,7 @@ class ServerApp(QMainWindow):
 
         try:
             self.updater.launch_installer(Path(installer_path))
+            self.close()
             QApplication.quit()
         except UpdateError as exc:
             QMessageBox.warning(self, "Actualizacion", f"No se pudo iniciar el instalador.\n\n{exc}")

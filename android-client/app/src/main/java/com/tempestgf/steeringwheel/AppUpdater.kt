@@ -1,6 +1,7 @@
 package com.tempestgf.steeringwheel
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -112,7 +113,52 @@ class AppUpdater(private val context: Context) {
             val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadId = dm.enqueue(request)
 
-            Toast.makeText(context, "Descargando actualización en segundo plano...", Toast.LENGTH_LONG).show()
+            val progressDialog = ProgressDialog(context).apply {
+                setTitle("Descargando actualización")
+                setMessage("Por favor, espera...")
+                setCancelable(false)
+                setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+                max = 100
+                show()
+            }
+
+            Thread {
+                var downloading = true
+                while (downloading) {
+                    val q = DownloadManager.Query()
+                    q.setFilterById(downloadId)
+                    val cursor = dm.query(q)
+                    if (cursor != null && cursor.moveToFirst()) {
+                        val bytesDownloadedIndex = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                        val bytesTotalIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                        val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                        
+                        if (bytesDownloadedIndex >= 0 && bytesTotalIndex >= 0 && statusIndex >= 0) {
+                            val bytesDownloaded = cursor.getInt(bytesDownloadedIndex)
+                            val bytesTotal = cursor.getInt(bytesTotalIndex)
+                            val status = cursor.getInt(statusIndex)
+                            if (status == DownloadManager.STATUS_SUCCESSFUL || status == DownloadManager.STATUS_FAILED) {
+                                downloading = false
+                            }
+                            if (bytesTotal > 0) {
+                                val progress = ((bytesDownloaded * 100L) / bytesTotal).toInt()
+                                Handler(Looper.getMainLooper()).post {
+                                    progressDialog.progress = progress
+                                }
+                            }
+                        }
+                    } else {
+                        downloading = false
+                    }
+                    cursor?.close()
+                    if (downloading) {
+                        Thread.sleep(500)
+                    }
+                }
+                Handler(Looper.getMainLooper()).post {
+                    progressDialog.dismiss()
+                }
+            }.start()
 
             val onComplete = object : BroadcastReceiver() {
                 override fun onReceive(ctxt: Context, intent: Intent) {
