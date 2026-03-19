@@ -1,3 +1,3 @@
 APP_NAME = "Mobile Wheel Server"
-APP_VERSION = "1.0.2"
+APP_VERSION = "1.0.3"
 UPDATE_MANIFEST_URL = "https://mobilwheel.com/api/update"
