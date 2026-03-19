@@ -6,7 +6,7 @@ Aplicación que simula tu teléfono como un volante de carreras para PC.
 
 ## Descargas
 
-- **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.1-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
+- **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.2-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2)
 
 **Note:** Both the Python Server and the Android Client APK are available inside a single merged GitHub Release now. If you want to download them separately, please visit our [Official Website](https://mobilwheel.com/#download).
 
@@ -20,7 +20,7 @@ Aplicación que simula tu teléfono como un volante de carreras para PC.
 
 # Python Server
 
-[![Release python-server](https://img.shields.io/badge/Release-python--server--v1.0.1-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
+[![Release python-server](https://img.shields.io/badge/Release-python--server--v1.0.2-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2)
 
 The Python server in this project monitors commands sent from the client application and displays the corresponding logs in real-time. The server runs a graphical interface that allows you to start and stop the server, observe the status of various input commands (such as acceleration, braking, and steering), and view a live log of all actions performed by the server.
 
@@ -28,7 +28,7 @@ Advanced features include real-time telemetry integration with popular racing si
 
 ### Installation
 
-1. Download `MobileWheelServer-1.0.1-setup.exe` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1) or directly from the [website](https://mobilwheel.com/update/MobileWheelServer-1.0.1-setup.exe).
+1. Download `MobileWheelServer-1.0.2-setup.exe` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2) or directly from the [website](https://mobilwheel.com/update/MobileWheelServer-1.0.2-setup.exe).
 2. Run the executable. It will self-update when new versions are available.
 3. Configure your racing simulator or input device.
 
@@ -36,13 +36,13 @@ Advanced features include real-time telemetry integration with popular racing si
 
 # iOS Client
 
-[![Release iOS](https://img.shields.io/badge/Release-iOS--v1.0.1-lightgrey?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
+[![Release iOS](https://img.shields.io/badge/Release-iOS--v1.0.2-lightgrey?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2)
 
 ### Installation (Sideloading)
 
 Due to Apple's restrictions on app distribution outside the App Store, the iOS app `.ipa` must be installed using a computer and an Apple ID (Sideloading).
 
-1. Download `MobilWheel-unsigned.ipa` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1).
+1. Download `MobilWheel-unsigned.ipa` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2).
 2. Install via **[AltStore](https://altstore.io/)**: Install AltServer on your PC, trust your Apple ID, and install the `.ipa` onto your iPhone.
 3. *Alternative:* Use **[Sideloadly](https://sideloadly.io/)**: Connect your iPhone to your PC via USB, drag and drop the `.ipa`, log in with your Apple ID, and click Start.
 4. Go to **Settings > General > VPN & Device Management** on your iPhone and "Trust" your developer certificate.
@@ -51,11 +51,11 @@ Due to Apple's restrictions on app distribution outside the App Store, the iOS a
 
 # Android Client
 
-[![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.1-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1)
+[![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.2-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2)
 
 ### Installation
 
-1. Download `MobileWheelClient-1.0.1.apk` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.1) or directly from the [website](https://mobilwheel.com/#download).
+1. Download `MobileWheelClient-1.0.2.apk` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.2) or directly from the [website](https://mobilwheel.com/#download).
 2. Transfer the APK to your Android device.
 3. Install the APK (you may need to enable "Unknown sources" in your device settings).
 4. Launch the app and connect to your Python server. Both the Server and the App include an automatic update system to stay always on the latest version.
