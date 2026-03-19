@@ -1,26 +1,26 @@
-# MobilWheel
+﻿# MobilWheel
 
-[English](README.md) | [Español](README.es.md) | [Català](README.ca.md)
+[English](README.md) | [EspaÃ±ol](README.es.md) | [CatalÃ ](README.ca.md)
 
 An app that simulates your phone as a steering wheel for PC.
 
 ## Downloads
 
-- **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.3-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3)
+- **Desktop & Android Unified Release** - [![Release Unified](https://img.shields.io/badge/Release-v1.0.4-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4)
 
 **Note:** Both the Python Server and the Android Client APK are available inside a single merged GitHub Release now. If you want to download them separately, please visit our [Official Website](https://mobilwheel.com/#download).
 
 ## Features
 
-- 🎮 Real-time steering wheel control via mobile device
-- 📊 Advanced telemetry dashboard with live race metrics  
-- 🏁 Support for Assetto Corsa, Assetto Corsa Competizione, iRacing, and Le Mans Ultimate
-- 📱 Customizable controls and sensitivity settings
-- 🚗 Live indicators: Gear, Speed, RPM, Throttle, Brake, and more
+- ðŸŽ® Real-time steering wheel control via mobile device
+- ðŸ“Š Advanced telemetry dashboard with live race metrics  
+- ðŸ Support for Assetto Corsa, Assetto Corsa Competizione, iRacing, and Le Mans Ultimate
+- ðŸ“± Customizable controls and sensitivity settings
+- ðŸš— Live indicators: Gear, Speed, RPM, Throttle, Brake, and more
 
 # Python Server
 
-[![Release python-server](https://img.shields.io/badge/Release-python--server--v1.0.3-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3)
+[![Release python-server](https://img.shields.io/badge/Release-python--server--v1.0.4-purple?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4)
 
 The Python server in this project monitors commands sent from the client application and displays the corresponding logs in real-time. The server runs a graphical interface that allows you to start and stop the server, observe the status of various input commands (such as acceleration, braking, and steering), and view a live log of all actions performed by the server.
 
@@ -28,7 +28,7 @@ Advanced features include real-time telemetry integration with popular racing si
 
 ### Installation
 
-1. Download `MobileWheelServer-1.0.3-setup.exe` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3) or directly from the [website](https://mobilwheel.com/update/MobileWheelServer-1.0.3-setup.exe).
+1. Download `MobileWheelServer-1.0.4-setup.exe` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4) or directly from the [website](https://mobilwheel.com/update/MobileWheelServer-1.0.4-setup.exe).
 2. Run the executable. It will self-update when new versions are available.
 3. Configure your racing simulator or input device.
 
@@ -36,13 +36,13 @@ Advanced features include real-time telemetry integration with popular racing si
 
 # iOS Client
 
-[![Release iOS](https://img.shields.io/badge/Release-iOS--v1.0.3-lightgrey?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3)
+[![Release iOS](https://img.shields.io/badge/Release-iOS--v1.0.4-lightgrey?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4)
 
 ### Installation (Sideloading)
 
 Due to Apple's restrictions on app distribution outside the App Store, the iOS app `.ipa` must be installed using a computer and an Apple ID (Sideloading).
 
-1. Download `MobilWheel-unsigned.ipa` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3).
+1. Download `MobilWheel-unsigned.ipa` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4).
 2. Install via **[AltStore](https://altstore.io/)**: Install AltServer on your PC, trust your Apple ID, and install the `.ipa` onto your iPhone.
 3. *Alternative:* Use **[Sideloadly](https://sideloadly.io/)**: Connect your iPhone to your PC via USB, drag and drop the `.ipa`, log in with your Apple ID, and click Start.
 4. Go to **Settings > General > VPN & Device Management** on your iPhone and "Trust" your developer certificate.
@@ -51,11 +51,11 @@ Due to Apple's restrictions on app distribution outside the App Store, the iOS a
 
 # Android Client
 
-[![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.3-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3)
+[![Release android-client](https://img.shields.io/badge/Release-android--client--v1.0.4-lightblue?style=for-the-badge)](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4)
 
 ### Installation
 
-1. Download `MobileWheelClient-1.0.3.apk` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.3) or directly from the [website](https://mobilwheel.com/#download).
+1. Download `MobileWheelClient-1.0.4.apk` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4) or directly from the [website](https://mobilwheel.com/#download).
 2. Transfer the APK to your Android device.
 3. Install the APK (you may need to enable "Unknown sources" in your device settings).
 4. Launch the app and connect to your Python server. Both the Server and the App include an automatic update system to stay always on the latest version.
@@ -122,4 +122,5 @@ The telemetry system provides drivers with essential real-time information:
 ### How It Works
 
 The Python server continuously reads telemetry data from the racing simulator through shared memory buffers or network protocols. This data is processed and sent to your Android device in real-time, updating the mobile display with current race conditions and vehicle performance metrics. The telemetry dashboard allows drivers to monitor critical information without taking their eyes off the road or simulator screen.
+
 

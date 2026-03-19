@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -13,8 +13,8 @@ android {
         applicationId = "com.tempestgf.steeringwheel"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.3"
+        versionCode = 10004
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -85,3 +85,4 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.3.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.3.0")
 }
+
