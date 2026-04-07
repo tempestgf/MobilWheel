@@ -26,11 +26,35 @@ The Python server in this project monitors commands sent from the client applica
 
 Advanced features include real-time telemetry integration with popular racing simulators, allowing live feedback to your mobile device with essential driving metrics such as gear position, speed, throttle percentage, brake pressure, and race status information. This setup provides a straightforward way to manage and monitor the communication between the client and server.
 
+
 ### Installation
 
+#### Windows
 1. Download `MobileWheelServer-1.0.4-setup.exe` from the [latest release](https://github.com/tempestgf/MobilWheel/releases/tag/v1.0.4) or directly from the [website](https://mobilwheel.com/update/MobileWheelServer-1.0.4-setup.exe).
 2. Run the executable. It will self-update when new versions are available.
 3. Configure your racing simulator or input device.
+
+#### Linux
+To run the server on Linux, you will run the Python Server directly from source and use a virtual environment.
+
+1. Clone the repository to get the source code:
+	```bash
+	git clone https://github.com/tempestgf/MobilWheel.git
+	cd MobilWheel/python-server
+	```
+2. Create and activate a Python virtual environment:
+	```bash
+	python3 -m venv .venv
+	source .venv/bin/activate
+	```
+3. Install the required dependencies:
+	```bash
+	pip install -r requirements.txt
+	```
+4. Run the server application:
+	```bash
+	python3 ServerApp.py
+	```
 
 
 
