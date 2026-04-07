@@ -42,11 +42,13 @@ Set-Content -Path $pyVersionFile -Value $pyContent -Encoding UTF8
 
 # READMEs
 Write-Host "Actualizando README.md, README.es.md y README.ca.md..."
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 Get-ChildItem -Filter "README*.md" | ForEach-Object {
-    Write-Host "  - Actualizando $_"
-    $c = Get-Content $_ -Raw
-    $c = [regex]::Replace($c, '1\.\d+\.\d+', $version)
-    Set-Content -Path $_ -Value $c -Encoding UTF8
+    Write-Host "  - Actualizando $($_.Name)"
+    $path = $_.FullName
+    $c = [System.IO.File]::ReadAllText($path, $utf8NoBom)
+    $c = [regex]::Replace($c, '\d+\.\d+\.\d+', $version)
+    [System.IO.File]::WriteAllText($path, $c, $utf8NoBom)
 }
 Write-Host "READMEs actualizados correctamente."
 
